@@ -112,7 +112,7 @@ const SW=new Set("the,and,for,are,but,not,you,your,that,this,with,from,they,them
 const ws=s=>new Set(norm(s).toLowerCase().split(" ").filter(w=>w.length>2&&!SW.has(w)));
 function dup(body,extra){const a=ws(body);if(a.size<5)return false;for(const it of mem.i.concat(extra)){const b=ws(it);let n=0;a.forEach(w=>{if(b.has(w))n++});if(n/(a.size+b.size-n)>.75)return true}return false}
 const snip=b=>b.replace(/\n/g," ").slice(0,160);
-function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(SR()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 let LVc={},lastAcc=null,lastAdded=[],lastSkip=0,lastExtra=0;
 const TGT=()=>Math.max(1,Math.min(50,+$("n").value||25));
@@ -199,12 +199,19 @@ function more(){
   const need=Math.max(1,TGT()-(lastAcc?lastAcc.length:0));
   cp(bp(need,false),"बाकी "+need+" पोस्ट का प्रॉम्प्ट कॉपी हो गया। AI का जवाब इसी बॉक्स में नीचे जोड़ें।");
 }
+/* Title Case for English text (Hindi is unaffected); small words stay lowercase unless they start a sentence */
+const SMW=new Set("a,an,the,and,but,or,nor,for,so,yet,as,at,by,in,of,on,to,up,off,per,via".split(","));
+function tcase(t){return(t||"").split("\n").map(l=>{let first=true;return l.split(" ").map(w=>{
+  const lw=w.replace(/^[^A-Za-z]+/,"").toLowerCase().replace(/[^a-z]+$/,"");let r=w;
+  if(/[A-Za-z]/.test(w)){r=(SMW.has(lw)&&!first)?w.replace(/[A-Za-z]/,m=>m.toLowerCase()):w.replace(/[A-Za-z]/,m=>m.toUpperCase())}
+  first=/[.!?…]["”’)]*$/.test(w);return r}).join(" ")}).join("\n")}
+const TC=p=>Object.assign({},p,{body:tcase(p.body),label:tcase(p.label||"")});
 function clean(s){
   return s.replace(/\*\*|__|`/g,"").replace(/^[\s>*•-]+/,"").replace(/^\d+[.)]\s+/,"").replace(/^["“”]+|["“”]+$/g,"").trim();
 }
 function parse(t){
   t=t.replace(/\r/g,"").replace(/^[ \t]*(#+)/gm,"\n---\n$1");
-  const arr=t.split(/\n\s*-{3,}\s*(?:\n|$)/).map(b=>b.trim()).filter(Boolean).map(b=>{
+  const arr=t.split(/\n\s*-{3,}\s*(?:\n|$)/).map(b=>b.replace(/^(?:\s*-{3,}[ \t]*(?:\n|$))+/,"").trim()).filter(Boolean).map(b=>{
     let L=b.split("\n").map(x=>x.trim()).filter(Boolean),label="",au="";
     if(L[0]&&L[0].startsWith("#"))label=clean(L.shift().replace(/^#+\s*/,""));
     if(L.length>1&&/^(—|–|--)\s*/.test(L[L.length-1]))au=L.pop().replace(/^(—|–|--)\s*/,"— ");
@@ -237,7 +244,9 @@ function tag(c,t,x,y,ac,al){
 function lay(c,p,P,wm,o){
   o=Object.assign({},LVc,o||{});
   const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260;
-  if(o.panel){c.fillStyle=o.panel;rr(c,64,top-50,W-128,bot-top+160,44);c.fill()}
+  {const lt=o.col&&o.col.length==7&&o.col!="#ffffff",py=o.nt?245:205;
+   c.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(c,64,py,W-128,H-150-py,44);c.fill();
+   c.strokeStyle=hex(ac,.55);c.lineWidth=3;rr(c,64,py,W-128,H-150-py,44);c.stroke()}
   if(p.label&&!o.nt){o.lb?tag2(c,p.label,x0,165,ac,al,o.lb,o.tc):tag(c,p.label,x0,165,ac,al)}
   const f=fit(c,p.body,mw,bot-top,o.fam,o.big);
   c.font=f.f;c.textAlign=al;c.textBaseline="middle";
@@ -260,10 +269,32 @@ const T=[
  (c,p,P,wm)=>{mesh(c,P);c.fillStyle=P[3];c.fillRect(0,0,30,H);c.fillStyle=hex(P[2],.06);c.font=`800 240px ${N}`;c.textAlign="right";c.textBaseline="alphabetic";c.fillText((p.label||"").split(" ")[0],W-40,H-190);lay(c,p,P,wm,{al:"left"})},
  (c,p,P,wm)=>{c.fillStyle="#0a0a12";c.fillRect(0,0,W,H);const q=c.createRadialGradient(W/2,H/2,0,W/2,H/2,W*.7);q.addColorStop(0,hex(P[3],.18));q.addColorStop(1,hex(P[3],0));c.fillStyle=q;c.fillRect(0,0,W,H);lay(c,p,P,wm,{col:"#fff",glow:1})},
  (c,p,P,wm)=>{c.fillStyle=P[0];c.fillRect(0,0,W,H);c.fillStyle=P[1];c.beginPath();c.moveTo(W*.35,0);c.lineTo(W,0);c.lineTo(W,H*.45);c.closePath();c.fill();c.fillStyle=hex(P[3],.9);c.beginPath();c.moveTo(0,H*.8);c.lineTo(W*.4,H);c.lineTo(0,H);c.closePath();c.fill();lay(c,p,P,wm,{al:"left"})},
- (c,p,P,wm,i)=>{const A=["#c0392b","#5b4bd6","#0f766e","#b45309"][i%4];c.fillStyle="#faf5ec";c.fillRect(0,0,W,H);c.fillStyle=A;c.fillRect(0,0,W,16);c.fillRect(0,H-16,W,16);lay(c,p,P,wm,{col:"#2b2320",ac:A,fam:"S"})}
+ (c,p,P,wm,i)=>{const A=TA(i);c.fillStyle="#faf5ec";c.fillRect(0,0,W,H);c.fillStyle=A;c.fillRect(0,0,W,16);c.fillRect(0,H-16,W,16);lay(c,p,P,wm,{col:"#2b2320",ac:A,fam:"S"})}
 ];
 /* ===== 66 NEW DESIGNS: engine ===== */
 const RN=s=>()=>(s=(s*16807)%2147483647)/2147483647;
+/* ===== TIME-BASED UNIQUE COLOUR ENGINE =====
+   Every click reads the exact clock (year-week, day-of-year, weekday, hour, minute, second, millisecond)
+   and turns it into a hue, a colour harmony, brightness levels, a design order and a layout offset.
+   Same second twice in a year = practically impossible, so looks almost never repeat. */
+let TS=Date.now(),SR=Math.random,SO=0;
+const h2x=(h,s,l)=>{h=((h%360)+360)%360;s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,"0")};return"#"+f(0)+f(8)+f(4)};
+function tm(){const d=new Date(TS),y0=new Date(d.getFullYear(),0,1),doy=Math.floor((d-y0)/864e5);
+  return{doy,wk:Math.floor((doy+y0.getDay())/7),wd:d.getDay(),hr:d.getHours(),mi:d.getMinutes(),se:d.getSeconds(),ms:d.getMilliseconds(),yr:d.getFullYear()}}
+function tH(i){const t=tm();return(t.yr*3+t.wk*47+t.doy*13+t.wd*61+t.hr*29+t.mi*7+t.se*3.1+t.ms*.017+i*37)%360}
+function TP(i){
+  const t=tm(),h=tH(i),sc=(t.wd*7+t.hr*3+t.mi+t.se+i)%6,off=[30,180,120,150,60,210][sc];
+  const sat=55+((t.se*7+t.mi*3+i*5)%35),L0=7+((t.mi+i)%10),L1=18+((t.se+i*3)%18),LA2=66+((t.ms+i*7)%14);
+  return[h2x(h,sat*.8,L0),h2x(h+off,sat,L1),"#ffffff",h2x(h+off*2+20,92,LA2)];
+}
+const TA=i=>h2x(tH(i)+i*13,70,36);
+const TB=i=>h2x(tH(i)+25,55,94-(tm().se+i)%5);
+function stamp(){
+  TS=Date.now();const t=tm();SO=t.se;
+  SR=RN((TS%2147483646)+1);
+  const D=["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"][t.wd],p=n=>String(n).padStart(2,"0");
+  return"🎨 रंग-कोड: "+D+" · सप्ताह "+(t.wk+1)+" · दिन "+(t.doy+1)+" · "+p(t.hr)+":"+p(t.mi)+":"+p(t.se)+"."+String(t.ms).padStart(3,"0");
+}
 const LA=["#c0392b","#5b4bd6","#0f766e","#b45309","#be185d","#1d4ed8","#7c3aed","#047857"];
 const LB=["#faf5ec","#f3efe6","#ffffff","#fde8ee","#e6f0ff","#e5f6ee","#f6ead6","#ece8fb"];
 const pt=r=>{let x,y,t=0;do{x=r()*W;y=r()*H}while(x>110&&x<W-110&&y>235&&y<H-235&&++t<30);return[x,y]};
@@ -342,7 +373,7 @@ function tag2(c,t,x,y,ac,al,m,tc){
 const CK=(k,L,A,P)=>k=="a"?(L?A:P[3]):k=="f"?(L?"#26212e":P[2]):k=="w"?"#ffffff":k=="k"?"#000000":k=="p0"?P[0]:k;
 /* spec: [background, [[decoration, colour, alpha], ...], layout options, isLight] */
 const MK=(bg,dc,o,L)=>(c,p,P0,wm,i)=>{
-  const r=RN(i*977+bg.length*31+dc.length*7+13),A=LA[i%LA.length],B=LB[(i*3)%LB.length],P=[lum(P0[0])>.3?dk(P0[0],.6):P0[0],dk(P0[1],.72),P0[2],P0[3]];
+  const r=RN(i*977+bg.length*31+dc.length*7+13),A=TA(i),B=TB(i),P=[lum(P0[0])>.3?dk(P0[0],.6):P0[0],dk(P0[1],.72),P0[2],P0[3]];
   BG[bg](c,P,A,B);
   dc.forEach(([n,k,a])=>DC[n](c,CK(k,L,A,P),a,r));
   const o2=Object.assign({tc:L?"#fff":"#111"},L?{col:"#26212e",ac:A,fc:"#26212e"}:{},o);
@@ -429,11 +460,11 @@ async function lf(){try{await document.fonts.load('700 40px "Noto Sans Devanagar
 async function allD(){
   const st=$("st"),en=$("lg").value=="en";
   H=+$("sz").value;N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
-  st.textContent="…";LVc={};await lf();
+  st.textContent="…";LVc={};await lf();const stp=stamp();
   const sp=en?{label:"Healing Quote",au:"\u2014 Anonymous",body:"Healing begins the moment you stop explaining yourself to people who chose not to understand."}:{label:"हीलिंग कोट",au:"\u2014 अज्ञात",body:"जो चला गया उसे जाने दो, जो रुका है उसकी क़द्र करो।"};
   const g=$("g");g.innerHTML="";canv=[];
-  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,sp,PAL[(i*5)%PAL.length],$("wm").value,i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
-  st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े।";
+  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,TC(sp),TP(i),$("wm").value,i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
+  st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
   $("zb").style.display="block";
 }
 const LV=[{},{vp:.12},{vp:.88,hl:1},{hl:1},{vp:.2,hl:1},{vp:.8},{big:1},{vp:.5,hl:1,big:1}];
@@ -454,6 +485,7 @@ async function go(){
   H=+$("sz").value;const en=$("lg").value=="en";N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
   const wm=$("wm").value,chk=$("dc").checked;
   await lf();
+  const stp=stamp();
   let acc,skip=0,extra=0;
   if(txt===last&&lastAcc){acc=lastAcc;skip=lastSkip;extra=lastExtra}
   else{
@@ -470,8 +502,8 @@ async function go(){
   const order=pickD(acc.length,$("dm").value),g=$("g");g.innerHTML="";canv=[];
   acc.forEach((p,i)=>{
     const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");
-    LVc=LV[(i*3)%LV.length];
-    T[order[i]](c,p,PAL[(i*5+Math.floor(i/12))%PAL.length],wm,i);
+    LVc=LV[(i*3+SO)%LV.length];
+    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
     canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);
     const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d);
   });
@@ -483,6 +515,7 @@ async function go(){
   if(long)m+=" · ⚠ "+long+" पोस्ट 30 शब्द से लंबी हैं (टेक्स्ट छोटा दिखेगा)";
   if(acc.length<TG){const need=TG-acc.length;m+="<br>⚠ "+need+" पोस्ट कम हैं। बाकी पोस्ट इसी बॉक्स में नीचे जोड़ें (पुराना टेक्स्ट न मिटाएँ) <button class=\"g\" style=\"margin-top:6px\" onclick=\"more()\">📋 बाकी "+need+" पोस्ट का प्रॉम्प्ट कॉपी करें</button>"}
   else m+=" ✓";
+  m+="<br><span style=\"color:var(--mut);font-size:12px\">"+stp+"</span>";
   st.innerHTML=m;
   $("zb").style.display=canv.length?"block":"none";
 }
