@@ -50,7 +50,6 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <h2>② पोस्ट पेस्ट करें, इमेज अपने आप बनेंगी</h2>
 <textarea id="in" placeholder="# Psychology Fact&#10;Your post text...&#10;---&#10;# Healing Quote&#10;..."></textarea>
 <div class="row">
-<div><label>ग्रुप / पेज का नाम</label><input id="wm" value="@YourGroup"></div>
 <div><label>साइज़</label><select id="sz"><option value="1080">Square 1080×1080</option><option value="1350">Portrait 1080×1350</option><option value="1920">Story 1080×1920</option></select></div>
 <div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (76)</option><option value="new">सिर्फ़ नए 66</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
 </div>
@@ -101,7 +100,7 @@ Don’t try to impress on the first date. Listen closely and let them feel seen.
 const PI_EN="You are my content writer for a Facebook page about relationships, psychology and dating (English). When I paste a “New batch prompt”, follow its rules, format, topics and the “Already used” list strictly. Output only the posts: no introduction, no commentary, no questions.";
 const PI_HI="तुम मेरे फेसबुक ग्रुप (रिलेशनशिप, साइकोलॉजी, डेटिंग; हिंदी) के कंटेंट राइटर हो। जब मैं “नया बैच प्रॉम्प्ट” पेस्ट करूँ, तो उसमें दिए नियम, फॉर्मेट, विषय और “पहले आ चुकी पोस्ट” की लिस्ट का सख़्ती से पालन करो। सिर्फ पोस्ट का आउटपुट दो, कोई भूमिका या टिप्पणी नहीं।";
 function lgp(){const en=$("lg").value=="en";$("pi").textContent=en?PI_EN:PI_HI;$("in").placeholder=en?"# Psychology Fact\nYour post text...\n---\n# Healing Quote\n...":"# साइकोलॉजी फैक्ट\nपोस्ट का टेक्स्ट...\n---\n# कोट\n..."}
-function lgc(){const en=$("lg").value=="en";$("ty").value=en?"Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote":"साइकोलॉजी फैक्ट, साइकोलॉजी कोट, रिलेशनशिप टिप, डेटिंग टिप, हीलिंग कोट";$("wm").value=en?"@YourGroup":"@आपका ग्रुप";lgp()}
+function lgc(){const en=$("lg").value=="en";$("ty").value=en?"Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote":"साइकोलॉजी फैक्ट, साइकोलॉजी कोट, रिलेशनशिप टिप, डेटिंग टिप, हीलिंग कोट";lgp()}
 lgp();
 let W=1080,H=1080,canv=[],last="",mem={b:0,i:[],tu:[]};
 try{const s=localStorage.getItem("bpm2");if(s)mem=JSON.parse(s)}catch(e){}
@@ -256,8 +255,6 @@ function lay(c,p,P,wm,o){
   f.l.forEach((l,j)=>{c.fillStyle=(o.hl&&j==0&&f.l.length>1)?ac:col;c.fillText(l,x0,y);y+=f.lh});c.shadowBlur=0;
   c.fillStyle=ac;rr(c,al=="center"?W/2-45:x0,bot+22,90,7,3.5);c.fill();
   if(p.au){c.font=`500 34px ${N}`;c.textAlign=al;c.fillStyle=ac;c.fillText(p.au,x0,bot+75)}
-  c.strokeStyle=hex(o.fc||col,.3);c.lineWidth=2;c.beginPath();c.moveTo(W/2-60,H-120);c.lineTo(W/2+60,H-120);c.stroke();
-  c.font=`500 28px ${N}`;c.textAlign="center";c.fillStyle=hex(o.fc||col,.8);c.fillText(wm,W/2,H-75);
 }
 const T=[
  (c,p,P,wm)=>{mesh(c,P);dots(c,P[2],.07);lay(c,p,P,wm)},
@@ -463,7 +460,7 @@ async function allD(){
   st.textContent="…";LVc={};await lf();const stp=stamp();
   const sp=en?{label:"Healing Quote",au:"\u2014 Anonymous",body:"Healing begins the moment you stop explaining yourself to people who chose not to understand."}:{label:"हीलिंग कोट",au:"\u2014 अज्ञात",body:"जो चला गया उसे जाने दो, जो रुका है उसकी क़द्र करो।"};
   const g=$("g");g.innerHTML="";canv=[];
-  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,TC(sp),TP(i),$("wm").value,i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
+  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,TC(sp),TP(i),"",i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
   st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
   $("zb").style.display="block";
 }
@@ -483,7 +480,7 @@ async function go(){
   const txt=$("in").value,st=$("st"),TG=TGT(),raw=parse(txt);
   if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];$("zb").style.display="none";return}
   H=+$("sz").value;const en=$("lg").value=="en";N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
-  const wm=$("wm").value,chk=$("dc").checked;
+  const wm="",chk=$("dc").checked;
   await lf();
   const stp=stamp();
   let acc,skip=0,extra=0;
@@ -561,7 +558,7 @@ function sample(){if($("lg").value=="en"){$("in").value=EN_S;return}$("in").valu
 # हीलिंग कोट
 खुद से प्यार करना सीख लो, फिर कोई छोड़कर जाए तो भी टूटोगे नहीं।`}
 $("in").addEventListener("paste",()=>setTimeout(go,250));
-["sz","dm","wm"].forEach(id=>$(id).addEventListener("change",()=>{if($("in").value.trim())go()}));
+["sz","dm"].forEach(id=>$(id).addEventListener("change",()=>{if($("in").value.trim())go()}));
 </script>
 </body>
 </html>
