@@ -51,13 +51,13 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <textarea id="in" placeholder="# Psychology Fact&#10;Your post text...&#10;---&#10;# Healing Quote&#10;..."></textarea>
 <div class="row">
 <div><label>साइज़</label><select id="sz"><option value="1080">Square 1080×1080</option><option value="1350">Portrait 1080×1350</option><option value="1920">Story 1080×1920</option></select></div>
-<div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (124)</option><option value="new">सिर्फ़ नए 114</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
+<div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (999)</option><option value="new">सिर्फ़ नए 989</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
 </div>
 <label><input type="checkbox" id="dc" checked style="width:auto"> पुरानी (दोहराई) पोस्ट अपने आप छोड़ो और नई पोस्ट इतिहास में जोड़ो (कम पड़ें तो "बाकी पोस्ट" का प्रॉम्प्ट मिलेगा)</label>
 <div class="row">
 <button onclick="go()">✨ फिर से बनाओ</button>
 <button class="g" onclick="sample()">नमूना भरें</button>
-<button class="g" onclick="allD()">🎨 सारे 124 डिज़ाइन देखें</button>
+<button class="g" onclick="allD()">🎨 सारे 999 डिज़ाइन देखें</button>
 <button class="g" id="zb" onclick="zip()" style="display:none">⬇ सब ZIP में</button>
 </div>
 <div id="st"></div>
@@ -532,18 +532,59 @@ const NEW4=[
 ].map(x=>MK(x[0],x[1],x[2],true));
 
 T.push(...NEW1,...NEW2,...NEW3,...NEW4);
-const LIGHT=new Set([9]);for(let i=43;i<76;i++)LIGHT.add(i);for(let i=100;i<T.length;i++)LIGHT.add(i);
+
+/* ===== 875 GENERATED DESIGNS (fixed seed: same numbers every time) ===== */
+Object.assign(BG,{
+ ltc:(c,P,A,B)=>{fl(c,B);rg(c,hex(A,.22),hex(A,0),W*.9,H*.1,H*.9)},
+ ltd:(c,P,A,B)=>{fl(c,B);lg(c,hex(A,.16),hex(A,0),0,0,W,H)},
+ dglow:(c,P,A)=>{fl(c,P[0]);rg(c,hex(A,.3),hex(A,0),W/2,H*.5,H*.75)},
+ dcor:(c,P)=>{fl(c,P[0]);rg(c,hex(P[3],.28),hex(P[3],0),W,0,H)}
+});
+const GENL=[];
+const GEN=(()=>{
+  const r=RN(20261),pk=a=>a[Math.floor(r()*a.length)];
+  const DB=["v","vr","d","dr","rad","radt","s0","ink","night","band","acg","ac","tri","rad2","split","dglow","dcor"],LB=["lt","ltg","ltw","ltr","ltc","ltd"];
+  const AMB=["grid","lines","stripe","dot","polka","cross","diam","check","hexg","ring","ring2","ringc","wave","wavet","tri","star","spark","heart","bokeh","noise","rays","corner","blob","arc","bars","halo","qm","wavy","confetti","bubble","petal","vlines","halftone","topo","film","sun","squig","band"];
+  const ACC=["topbar","side","diag","tri2","zig","brk","frame","frame2","frameR","dbl","dash","ribbon","stairs","scallop","moon"];
+  const out=[],seen=new Set();
+  for(let g=0;out.length<875&&g<60000;g++){
+    const L=out.length%2==1,bg=pk(L?LB:DB),n=r()<.4?1:2,dc=[],ua=new Set(),fc=bg=="ac"||bg=="acg";
+    while(dc.length<n){const d=pk(AMB);if(ua.has(d))continue;ua.add(d);dc.push([d,(fc||r()<.4)?"f":"a",+(.06+r()*.22).toFixed(2)])}
+    if(r()<.5)dc.push([pk(ACC),"a",+(.6+r()*.4).toFixed(2)]);
+    const o={};if(r()<.3)o.al="left";if(r()<.4)o.fam="S";const lb=pk([0,"solid","plain","line"]);if(lb)o.lb=lb;
+    if(!L&&(bg=="night"||bg=="ink")&&r()<.4)o.glow=1;if(r()<.12)o.panel=1;
+    const key=bg+"|"+dc.map(x=>x[0]+x[1]).join(",")+"|"+JSON.stringify(o);
+    if(seen.has(key))continue;seen.add(key);out.push(MK(bg,dc,o,L));GENL.push(L);
+  }
+  return out;
+})();
+T.push(...GEN);
+const LIGHT=new Set([9]);for(let i=43;i<76;i++)LIGHT.add(i);for(let i=100;i<124;i++)LIGHT.add(i);GENL.forEach((l,k)=>{if(l)LIGHT.add(124+k)});
 async function lf(){try{await document.fonts.load('700 40px "Noto Sans Devanagari"',"अआक");await document.fonts.load('400 40px "Tiro Devanagari Hindi"',"अआक");await document.fonts.load("700 40px Poppins","Ab");await document.fonts.load('400 40px "Playfair Display"',"Ab");await document.fonts.ready}catch(e){}}
-async function allD(){
-  const st=$("st"),en=$("lg").value=="en";
+let ADp=0;
+async function allD(more){
+  const st=$("st"),en=$("lg").value=="en",g=$("g");
   H=+$("sz").value;N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
-  st.textContent="…";LVc={};await lf();const stp=stamp();
+  const Hc=H,N0=N,SF0=SF;
+  st.textContent="…";LVc={};await lf();
+  if(!more){g.innerHTML="";canv=[];ADp=0;AD_TS=stamp()&&TS}
+  const ts0=AD_TS,stp="🎨 रंग-कोड सेट #"+ts0%100000;
   const sp=en?{label:"Healing Quote",au:"\u2014 Anonymous",body:"Healing begins the moment you stop explaining yourself to people who chose not to understand."}:{label:"हीलिंग कोट",au:"\u2014 अज्ञात",body:"जो चला गया उसे जाने दो, जो रुका है उसकी क़द्र करो।"};
-  const g=$("g");g.innerHTML="";canv=[];
-  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,TC(sp),TP(i),"",i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
-  st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
-  $("zb").style.display="block";
+  const draw=(i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=Hc;const c=cv.getContext("2d");H=Hc;N=N0;SF=SF0;TS=ts0;LVc={};T[i](c,TC(sp),TP(i),"",i);return cv};
+  const end=Math.min(T.length,ADp+100),tw=220,th=Math.round(Hc*tw/W);
+  for(let i=ADp;i<end;i++){
+    const big=draw(i),cv=document.createElement("canvas");cv.width=tw;cv.height=th;cv.getContext("2d").drawImage(big,0,0,tw,th);
+    const d=document.createElement("div");d.className="c";d.appendChild(cv);
+    const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);
+    b.onclick=()=>{const sH=H,sN=N,sS=SF,sT=TS;const f=draw(i);H=sH;N=sN;SF=sS;TS=sT;dl(f,i)};
+    d.appendChild(b);g.appendChild(d);
+    if(i%10==9){st.textContent="… "+(i+1)+"/"+T.length;await new Promise(r=>setTimeout(r))}
+  }
+  ADp=end;
+  st.innerHTML="डिज़ाइन 1–"+end+" / "+T.length+" (ये इतिहास में नहीं जुड़े)। "+stp+(end<T.length?'<br><button class="g" style="margin-top:6px" onclick="allD(1)">▶ अगले 100 देखें</button>':" ✓ सब दिख गए")+"<br><span style=\"color:var(--mut);font-size:12px\">किसी भी डिज़ाइन का नंबर नोट करके बता सकते हैं।</span>";
+  $("zb").style.display="none";
 }
+let AD_TS=0;
 const LV=[{},{vp:.12},{vp:.88,hl:1},{hl:1},{vp:.2,hl:1},{vp:.8},{big:1},{vp:.5,hl:1,big:1}];
 function pickD(n,dm,rec){
   let pool=[...T.keys()];if(dm=="old")pool=pool.slice(0,10);else if(dm=="new")pool=pool.slice(10);
