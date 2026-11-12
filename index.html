@@ -509,21 +509,73 @@ function drawFrame(d,t){
     k.save();k.globalAlpha=e;k.translate(0,it.k=="p"?0:(1-e)*40+fl);it.fn(k);k.restore();
   });
 }
-async function play(i,btn,save){
-  const d=RD[i];if(!d||recBusy)return;recBusy=1;const st=$("st"),old=btn.textContent;let wl=null,mr=null,mt="",ch=[];
-  try{wl=await navigator.wakeLock.request("screen")}catch(e){}
-  if(save){
-    mt=window.MediaRecorder?["video/mp4;codecs=avc1.42E01E","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(m=>MediaRecorder.isTypeSupported(m)):"";
-    if(!mt){st.textContent="इस ब्राउज़र में वीडियो रिकॉर्डिंग नहीं चलती।";recBusy=0;return}
-    mr=new MediaRecorder(d.cv.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
-    mr.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};mr.start(250);
+/* ===== exact 15s MP4: WebCodecs H.264 + tiny MP4 muxer (frame-by-frame, not real-time) ===== */
+function mp4mux(S,desc,w,h,fps){
+  const u8=a=>new Uint8Array(a),z=n=>new Uint8Array(n);
+  const cat=(...a)=>{let n=0;a.forEach(x=>n+=x.length);const o=new Uint8Array(n);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length});return o};
+  const u32=n=>u8([n>>>24&255,n>>>16&255,n>>>8&255,n&255]),u16=n=>u8([n>>8&255,n&255]),str=t=>u8([...t].map(c=>c.charCodeAt(0)));
+  const box=(t,...c)=>{const b=cat(...c);return cat(u32(b.length+8),str(t),b)};
+  const full=(t,v,fl,...c)=>box(t,u8([v,fl>>16&255,fl>>8&255,fl&255]),...c);
+  const n=S.length,ms=Math.round(n*1000/fps);let tot=0;S.forEach(x=>tot+=x.data.length);
+  const ftyp=box("ftyp",str("isom"),u32(512),str("isom"),str("iso2"),str("avc1"),str("mp41")),off=ftyp.length+8;
+  const mat=cat(u32(65536),z(12),u32(65536),z(12),u32(1073741824));
+  const mvhd=full("mvhd",0,0,u32(0),u32(0),u32(1000),u32(ms),u32(65536),u16(256),z(10),mat,z(24),u32(2));
+  const tkhd=full("tkhd",0,3,u32(0),u32(0),u32(1),u32(0),u32(ms),z(8),u16(0),u16(0),u16(0),u16(0),mat,u32(w*65536),u32(h*65536));
+  const mdhd=full("mdhd",0,0,u32(0),u32(0),u32(fps),u32(n),u16(0x55c4),u16(0));
+  const hdlr=full("hdlr",0,0,u32(0),str("vide"),z(12),str("VideoHandler"),z(1));
+  const vmhd=full("vmhd",0,1,z(8)),dinf=box("dinf",full("dref",0,0,u32(1),full("url ",0,1)));
+  const avc1=box("avc1",z(6),u16(1),z(16),u16(w),u16(h),u32(0x480000),u32(0x480000),u32(0),u16(1),z(32),u16(24),u16(65535),box("avcC",desc));
+  const ks=[];S.forEach((x,i)=>{if(x.key)ks.push(i+1)});
+  const stbl=box("stbl",full("stsd",0,0,u32(1),avc1),full("stts",0,0,u32(1),u32(n),u32(1)),full("stss",0,0,u32(ks.length),...ks.map(u32)),
+    full("stsc",0,0,u32(1),u32(1),u32(n),u32(1)),full("stsz",0,0,u32(0),u32(n),...S.map(x=>u32(x.data.length))),full("stco",0,0,u32(1),u32(off)));
+  const moov=box("moov",mvhd,box("trak",tkhd,box("mdia",mdhd,hdlr,box("minf",vmhd,dinf,stbl))));
+  return [ftyp,cat(u32(tot+8),str("mdat")),...S.map(x=>x.data),moov];
+}
+const slp=ms=>new Promise(r=>setTimeout(r,ms));
+async function encReel(d,btn){
+  const w=d.cv.width,h=d.cv.height,fps=30,N=RDUR*fps;let cfg=null;
+  for(const cd of ["avc1.640028","avc1.4D0028","avc1.42002A"]){const c={codec:cd,width:w,height:h,bitrate:6e6,framerate:fps,avc:{format:"avc"},latencyMode:"realtime"};
+    try{const r=await VideoEncoder.isConfigSupported(c);if(r.supported){cfg=c;break}}catch(e){}}
+  if(!cfg)return null;
+  const S=[];let desc=null,err=null;
+  const enc=new VideoEncoder({output:(ch,md)=>{const b=new Uint8Array(ch.byteLength);ch.copyTo(b);S.push({data:b,key:ch.type=="key"});
+    if(md&&md.decoderConfig&&md.decoderConfig.description)desc=new Uint8Array(md.decoderConfig.description)},error:e=>{err=e}});
+  enc.configure(cfg);
+  for(let i=0;i<N&&!err;i++){
+    while(enc.encodeQueueSize>6&&!err)await slp(4);
+    drawFrame(d,i/fps);
+    const fr=new VideoFrame(d.cv,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});
+    enc.encode(fr,{keyFrame:i%fps==0});fr.close();
+    if(i%8==0){btn.textContent="⏳ बन रही है "+Math.round(i/N*100)+"%";await slp(0)}
   }
-  const t0=performance.now();
-  await new Promise(res=>{const tk=()=>{const t=Math.min(RDUR,(performance.now()-t0)/1000);drawFrame(d,t);btn.textContent=(save?"⏺ रिकॉर्ड ":"▶ ")+Math.ceil(RDUR-t)+" सेक";t>=RDUR?res():requestAnimationFrame(tk)};tk()});
-  if(mr){await new Promise(r=>setTimeout(r,300));await new Promise(r=>{mr.onstop=r;mr.stop()});
-    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(ch,{type:mt.split(";")[0]}));
-    a.download="reel-"+String(i+1).padStart(2,"0")+(mt.includes("mp4")?".mp4":".webm");a.click();st.textContent="✓ रील "+(i+1)+" सेव हो गई।"}
-  drawFrame(d,7);btn.textContent=old;if(wl)try{wl.release()}catch(e){}recBusy=0;
+  if(!err)await enc.flush();
+  try{enc.close()}catch(e){}
+  if(err||!desc||S.length<N)return null;
+  return mp4mux(S,desc,w,h,fps);
+}
+function saveBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click()}
+async function play(i,btn,save){
+  const d=RD[i];if(!d||recBusy)return;recBusy=1;const st=$("st"),old=btn.textContent,nm="reel-"+String(i+1).padStart(2,"0");let wl=null;
+  try{wl=await navigator.wakeLock.request("screen")}catch(e){}
+  const fin=()=>{drawFrame(d,7);btn.textContent=old;if(wl)try{wl.release()}catch(e){}recBusy=0};
+  try{
+    if(save&&window.VideoEncoder&&window.VideoFrame){
+      let parts=null;try{parts=await encReel(d,btn)}catch(e){console.error(e)}
+      if(parts){saveBlob(new Blob(parts,{type:"video/mp4"}),nm+".mp4");st.textContent="✓ रील "+(i+1)+" सेव हो गई (पूरे 15 सेकंड, MP4)।";fin();return}
+    }
+    let mr=null,mt="",ch=[];
+    if(save){
+      mt=window.MediaRecorder?["video/mp4;codecs=avc1.640028","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(m=>MediaRecorder.isTypeSupported(m)):"";
+      if(!mt){st.textContent="इस ब्राउज़र में वीडियो रिकॉर्डिंग नहीं चलती।";fin();return}
+      mr=new MediaRecorder(d.cv.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
+      mr.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};mr.start(250);
+    }
+    const t0=performance.now();
+    await new Promise(res=>{const tk=()=>{const t=Math.min(RDUR,(performance.now()-t0)/1000);drawFrame(d,t);btn.textContent=(save?"⏺ रिकॉर्ड ":"▶ ")+Math.ceil(RDUR-t)+" सेक";t>=RDUR?res():requestAnimationFrame(tk)};tk()});
+    if(mr){await slp(300);if(mr.state!="inactive")await new Promise(r=>{mr.onstop=r;mr.stop()});
+      saveBlob(new Blob(ch,{type:mt.split(";")[0]}),nm+(mt.includes("mp4")?".mp4":".webm"));st.textContent="✓ रील "+(i+1)+" सेव हो गई।"}
+  }catch(e){console.error(e);st.textContent="रील बनाने में दिक्कत आई: "+(e&&e.message||e)}
+  fin();
 }
 async function recAll(){
   const ks=Object.keys(RD),st=$("st");let n=0;
