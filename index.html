@@ -41,6 +41,7 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <h2>① नया बैच प्रॉम्प्ट</h2>
 <p class="s">कॉपी करके किसी भी AI या Claude Project में पेस्ट करें। हर बार नए विषय मिलते हैं और पुरानी पोस्ट की लिस्ट साथ जाती है।</p>
 <div class="row"><div style="flex:0 0 120px;min-width:110px"><label>Language</label><select id="lg" onchange="lgc()"><option value="en" selected>English</option><option value="hi">हिंदी</option></select></div><div style="flex:0 0 90px;min-width:90px"><label>कितनी पोस्ट</label><input id="n" type="number" value="25" min="1" max="50"></div>
+<div style="flex:0 0 90px;min-width:90px"><label>इनमें रील</label><input id="rn" type="number" value="9" min="0" max="25"></div>
 <div style="flex:3"><label>पोस्ट के प्रकार (कॉमा से अलग)</label><input id="ty" value="Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote"></div></div>
 <button onclick="pr()">📋 नया बैच प्रॉम्प्ट कॉपी करें</button>
 <textarea id="pp" readonly></textarea>
@@ -58,7 +59,8 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <button onclick="go()">✨ फिर से बनाओ</button>
 <button class="g" onclick="sample()">नमूना भरें</button>
 <button class="g" onclick="allD()">🎨 सारे 76 डिज़ाइन देखें</button>
-<button class="g" id="zb" onclick="zip()" style="display:none">⬇ सब ZIP में</button>
+<button class="g" id="zb" onclick="zip()" style="display:none">⬇ इमेजेस ZIP में</button>
+<button id="rb" onclick="recAll()" style="display:none">🎬 सारी रील्स बनाओ</button>
 </div>
 <div id="st"></div>
 <div class="grid" id="g"></div>
@@ -240,21 +242,21 @@ function tag(c,t,x,y,ac,al){
   c.fillStyle=hex(ac,.16);rr(c,x0,y-33,w,66,33);c.fill();c.strokeStyle=ac;c.lineWidth=2.5;c.stroke();
   c.fillStyle=ac;c.textAlign="center";c.textBaseline="middle";c.fillText(s,x0+w/2,y+3);
 }
+let RD={},RI=null,recBusy=0;
 function lay(c,p,P,wm,o){
   o=Object.assign({},LVc,o||{});
-  const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260;
+  const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260,HL=H;
+  const dr=(kd,fn)=>{if(RI)RI.push({k:kd,fn});else fn(c)};
   {const lt=o.col&&o.col.length==7&&o.col!="#ffffff",py=o.nt?245:205;
-   c.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(c,64,py,W-128,H-150-py,44);c.fill();
-   c.strokeStyle=hex(ac,.55);c.lineWidth=3;rr(c,64,py,W-128,H-150-py,44);c.stroke()}
-  if(p.label&&!o.nt){o.lb?tag2(c,p.label,x0,165,ac,al,o.lb,o.tc):tag(c,p.label,x0,165,ac,al)}
+   dr("p",k=>{k.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(k,64,py,W-128,HL-150-py,44);k.fill();
+   k.strokeStyle=hex(ac,.55);k.lineWidth=3;rr(k,64,py,W-128,HL-150-py,44);k.stroke()})}
+  if(p.label&&!o.nt){dr("t",k=>{o.lb?tag2(k,p.label,x0,165,ac,al,o.lb,o.tc):tag(k,p.label,x0,165,ac,al)})}
   const f=fit(c,p.body,mw,bot-top,o.fam,o.big);
-  c.font=f.f;c.textAlign=al;c.textBaseline="middle";
-  if(o.glow){c.shadowColor=ac;c.shadowBlur=30}
-  const sp=Math.max(0,bot-top-f.l.length*f.lh),vp=o.vp==null?.5:o.vp;
-  let y=top+sp*vp+f.lh/2;
-  f.l.forEach((l,j)=>{c.fillStyle=(o.hl&&j==0&&f.l.length>1)?ac:col;c.fillText(l,x0,y);y+=f.lh});c.shadowBlur=0;
-  c.fillStyle=ac;rr(c,al=="center"?W/2-45:x0,bot+22,90,7,3.5);c.fill();
-  if(p.au){c.font=`500 34px ${N}`;c.textAlign=al;c.fillStyle=ac;c.fillText(p.au,x0,bot+75)}
+  const sp=Math.max(0,bot-top-f.l.length*f.lh),vp=o.vp==null?.5:o.vp,y0=top+sp*vp+f.lh/2;
+  f.l.forEach((l,j)=>{const yy=y0+j*f.lh,fc=(o.hl&&j==0&&f.l.length>1)?ac:col;
+    dr("l",k=>{k.font=f.f;k.textAlign=al;k.textBaseline="middle";if(o.glow){k.shadowColor=ac;k.shadowBlur=30}k.fillStyle=fc;k.fillText(l,x0,yy);k.shadowBlur=0})});
+  dr("b",k=>{k.fillStyle=ac;rr(k,al=="center"?W/2-45:x0,bot+22,90,7,3.5);k.fill()});
+  if(p.au)dr("a",k=>{k.font=`500 34px ${N}`;k.textAlign=al;k.textBaseline="middle";k.fillStyle=ac;k.fillText(p.au,x0,bot+75)});
 }
 const T=[
  (c,p,P,wm)=>{mesh(c,P);dots(c,P[2],.07);lay(c,p,P,wm)},
@@ -464,6 +466,70 @@ async function allD(){
   st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
   $("zb").style.display="block";
 }
+
+/* ===== REEL ENGINE ===== */
+const RDUR=15;
+function reelScore(p){
+  const t=(p.label||"").toLowerCase(),n=p.body.split(/\s+/).length,ln=p.body.split("\n").length;
+  let sc=/fact|फैक्ट/.test(t)?3:/heal|हीलिंग/.test(t)?2.5:/relationship|रिलेशन|dating|डेट|tip|टिप/.test(t)?2:/quote|कोट/.test(t)?1.2:1.5;
+  sc+=n<8?0:n<=22?3:n<=30?1.5:0;
+  if(ln>=2&&ln<=3)sc+=1;
+  if(/\?|कभी|never|why|क्यों|stop|don.t|मत |नहीं|आख़िर|आखिर/i.test(p.body))sc+=1;
+  return sc+SR()*.6;
+}
+function pickReels(acc,K){
+  const sc=acc.map((p,i)=>({i,s:reelScore(p),t:(p.label||"?").toLowerCase()})).sort((a,b)=>b.s-a.s);
+  const out=[],cnt={};
+  const tryAdd=(strict)=>{for(const x of sc){if(out.length>=K)break;if(out.some(o=>o.i==x.i))continue;
+    if(strict&&(out.reduce((m,o)=>Math.min(m,Math.abs(o.i-x.i)),99)<2||(cnt[x.t]||0)>=3))continue;
+    out.push(x);cnt[x.t]=(cnt[x.t]||0)+1}};
+  tryAdd(true);tryAdd(false);
+  const m=new Map();out.forEach(o=>m.set(o.i,o.s));return m;
+}
+function mkPt(i,w,h){const r=RN(i*977+13);return Array.from({length:22},()=>({x:r()*w,y:r()*h,s:10+r()*26,v:40+r()*90,ph:r()*6.28}))}
+function pHeart(k,x,y,s){k.beginPath();k.moveTo(x,y+s*.3);k.bezierCurveTo(x-s,y-s*.3,x-s*.4,y-s,x,y-s*.4);k.bezierCurveTo(x+s*.4,y-s,x+s,y-s*.3,x,y+s*.3);k.fill()}
+function pStar(k,x,y,s){k.beginPath();for(let j=0;j<8;j++){const q=j*Math.PI/4,d=j%2?s*.28:s;k.lineTo(x+Math.cos(q)*d,y+Math.sin(q)*d)}k.closePath();k.fill()}
+const eo=x=>1-Math.pow(1-Math.max(0,Math.min(1,x)),3);
+function drawFrame(d,t){
+  const k=d.cv.getContext("2d"),w=d.cv.width,h=d.cv.height,u=t/RDUR;
+  k.setTransform(1,0,0,1,0,0);k.globalAlpha=1;k.shadowBlur=0;k.clearRect(0,0,w,h);
+  let s=1.08,ox=0,oy=0,rot=0;
+  if(d.m==0)s=1.06+.06*u;else if(d.m==1){ox=Math.sin(u*6.28)*18;oy=-u*45}else if(d.m==2){ox=-u*30;oy=-u*40}
+  else if(d.m==3)s=1.07+.03*Math.sin(u*18.85);else rot=Math.sin(u*6.28)*.015;
+  k.save();k.translate(w/2+ox,h/2+oy);k.rotate(rot);k.scale(s,s);k.drawImage(d.bg,-w/2,-h/2);k.restore();
+  k.fillStyle=hex(d.P[3],.32);
+  d.pt.forEach(q=>{const y=((q.y-q.v*t)%(h+80)+h+80)%(h+80)-40,x=q.x+Math.sin(t*.8+q.ph)*30;
+    if(d.ps==0)pHeart(k,x,y,q.s);else if(d.ps==1)pStar(k,x,y,q.s*.8);else{k.beginPath();k.arc(x,y,q.s*.7,0,7);k.fill()}});
+  const nl=d.items.filter(x=>x.k=="l").length,step=Math.min(1.2,6/Math.max(1,nl));let li=0;const be=1.2+nl*step;
+  d.items.forEach((it,ix)=>{
+    let st=0,du=.7;
+    if(it.k=="t"){st=.5;du=.6}else if(it.k=="l"){st=1+li*step;du=.8;li++}else if(it.k=="b"){st=be;du=.5}else if(it.k=="a"){st=be+.3;du=.6}
+    const e=eo((t-st)/du);if(e<=0)return;
+    const fl=it.k=="p"?0:(t>st+du?Math.sin(t*1.5+ix)*2.5:0);
+    k.save();k.globalAlpha=e;k.translate(0,it.k=="p"?0:(1-e)*40+fl);it.fn(k);k.restore();
+  });
+}
+async function play(i,btn,save){
+  const d=RD[i];if(!d||recBusy)return;recBusy=1;const st=$("st"),old=btn.textContent;let wl=null,mr=null,mt="",ch=[];
+  try{wl=await navigator.wakeLock.request("screen")}catch(e){}
+  if(save){
+    mt=window.MediaRecorder?["video/mp4;codecs=avc1.42E01E","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(m=>MediaRecorder.isTypeSupported(m)):"";
+    if(!mt){st.textContent="इस ब्राउज़र में वीडियो रिकॉर्डिंग नहीं चलती।";recBusy=0;return}
+    mr=new MediaRecorder(d.cv.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
+    mr.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};mr.start(250);
+  }
+  const t0=performance.now();
+  await new Promise(res=>{const tk=()=>{const t=Math.min(RDUR,(performance.now()-t0)/1000);drawFrame(d,t);btn.textContent=(save?"⏺ रिकॉर्ड ":"▶ ")+Math.ceil(RDUR-t)+" सेक";t>=RDUR?res():requestAnimationFrame(tk)};tk()});
+  if(mr){await new Promise(r=>setTimeout(r,300));await new Promise(r=>{mr.onstop=r;mr.stop()});
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(ch,{type:mt.split(";")[0]}));
+    a.download="reel-"+String(i+1).padStart(2,"0")+(mt.includes("mp4")?".mp4":".webm");a.click();st.textContent="✓ रील "+(i+1)+" सेव हो गई।"}
+  drawFrame(d,7);btn.textContent=old;if(wl)try{wl.release()}catch(e){}recBusy=0;
+}
+async function recAll(){
+  const ks=Object.keys(RD),st=$("st");let n=0;
+  for(const k of ks){if(recBusy)return;st.textContent="रील "+(++n)+"/"+ks.length+" बन रही है… स्क्रीन चालू रखें, टैब बदलें नहीं।";await play(+k,$("rbtn"+k),1)}
+  st.textContent="✓ सारी "+ks.length+" रील्स सेव हो गईं। (ब्राउज़र एक साथ कई डाउनलोड पूछे तो Allow करें)";
+}
 const LV=[{},{vp:.12},{vp:.88,hl:1},{hl:1},{vp:.2,hl:1},{vp:.8},{big:1},{vp:.5,hl:1,big:1}];
 function pickD(n,dm){
   let pool=[...T.keys()];if(dm=="old")pool=pool.slice(0,10);else if(dm=="new")pool=pool.slice(10);
@@ -478,7 +544,7 @@ function pickD(n,dm){
 }
 async function go(){
   const txt=$("in").value,st=$("st"),TG=TGT(),raw=parse(txt);
-  if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];$("zb").style.display="none";return}
+  if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];RD={};$("zb").style.display="none";$("rb").style.display="none";return}
   H=+$("sz").value;const en=$("lg").value=="en";N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
   const wm="",chk=$("dc").checked;
   await lf();
@@ -497,16 +563,28 @@ async function go(){
     lastAdded=chk?add:[];last=txt;lastAcc=acc;lastSkip=skip;lastExtra=extra;
   }
   const order=pickD(acc.length,$("dm").value),g=$("g");g.innerHTML="";canv=[];
+  const RS=pickReels(acc,Math.max(0,Math.min(acc.length,+$("rn").value||0)));RD={};
   acc.forEach((p,i)=>{
+    const isR=RS.has(i),sH=H;if(isR)H=1920;
     const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");
-    LVc=LV[(i*3+SO)%LV.length];
-    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
+    LVc=LV[(i*3+SO)%LV.length];RI=isR?[]:null;
+    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;if(isR)RI=[];try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
+    const items=RI;RI=null;
     canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);
-    const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d);
+    if(isR){
+      const bg=document.createElement("canvas");bg.width=W;bg.height=H;bg.getContext("2d").drawImage(cv,0,0);
+      RD[i]={cv,bg,items,P:TP(i),m:i%5,ps:i%3,pt:mkPt(i,W,H)};drawFrame(RD[i],7);
+      const bd=document.createElement("div");bd.className="s";bd.style.margin="8px 0 0";bd.textContent="🎬 रील चुनी गई · स्कोर "+RS.get(i).toFixed(1);d.appendChild(bd);
+      const b1=document.createElement("button");b1.id="rbtn"+i;b1.textContent="⏺ रील बनाओ (15 सेक)";b1.onclick=()=>play(i,b1,1);d.appendChild(b1);
+      const b2=document.createElement("button");b2.className="g";b2.textContent="▶ प्रीव्यू देखो";b2.onclick=()=>play(i,b2,0);d.appendChild(b2);
+    }else{
+      const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);
+    }
+    H=sH;g.appendChild(d);
   });
   LVc={};
   const long=acc.filter(p=>p.body.split(/\s+/).length>30).length;
-  let m=acc.length+"/"+TG+" पोस्ट तैयार";
+  let m=acc.length+"/"+TG+" पोस्ट तैयार · 🎬 "+Object.keys(RD).length+" रील + 🖼 "+(acc.length-Object.keys(RD).length)+" इमेज";
   if(skip)m+=" · "+skip+" पुरानी/दोहराई पोस्ट छोड़ीं";
   if(extra)m+=" · "+extra+" फ़ालतू पोस्ट छोड़ीं (सिर्फ़ पहली "+TG+" ली)";
   if(long)m+=" · ⚠ "+long+" पोस्ट 30 शब्द से लंबी हैं (टेक्स्ट छोटा दिखेगा)";
@@ -514,12 +592,12 @@ async function go(){
   else m+=" ✓";
   m+="<br><span style=\"color:var(--mut);font-size:12px\">"+stp+"</span>";
   st.innerHTML=m;
-  $("zb").style.display=canv.length?"block":"none";
+  $("zb").style.display=canv.length?"block":"none";$("rb").style.display=Object.keys(RD).length?"block":"none";
 }
 function dl(cv,i){cv.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="post-"+String(i+1).padStart(2,"0")+".png";a.click()})}
 async function zip(){
   const st=$("st");st.textContent="ZIP बन रही है…";
-  try{const z=new JSZip();for(let i=0;i<canv.length;i++){z.file("post-"+String(i+1).padStart(2,"0")+".png",await new Promise(r=>canv[i].toBlob(r)))}
+  try{const z=new JSZip();for(let i=0;i<canv.length;i++){if(RD[i])continue;z.file("post-"+String(i+1).padStart(2,"0")+".png",await new Promise(r=>canv[i].toBlob(r)))}
   const o=await z.generateAsync({type:"blob"}),a=document.createElement("a");a.href=URL.createObjectURL(o);a.download="posts.zip";a.click();st.textContent="ZIP तैयार।"}
   catch(e){st.textContent="ZIP में दिक्कत आई। हर पोस्ट अलग से डाउनलोड करें।"}
 }
