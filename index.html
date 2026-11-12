@@ -41,7 +41,6 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <h2>① नया बैच प्रॉम्प्ट</h2>
 <p class="s">कॉपी करके किसी भी AI या Claude Project में पेस्ट करें। हर बार नए विषय मिलते हैं और पुरानी पोस्ट की लिस्ट साथ जाती है।</p>
 <div class="row"><div style="flex:0 0 120px;min-width:110px"><label>Language</label><select id="lg" onchange="lgc()"><option value="en" selected>English</option><option value="hi">हिंदी</option></select></div><div style="flex:0 0 90px;min-width:90px"><label>कितनी पोस्ट</label><input id="n" type="number" value="25" min="1" max="50"></div>
-<div style="flex:0 0 90px;min-width:90px"><label>इनमें रील</label><input id="rn" type="number" value="9" min="0" max="25"></div>
 <div style="flex:3"><label>पोस्ट के प्रकार (कॉमा से अलग)</label><input id="ty" value="Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote"></div></div>
 <button onclick="pr()">📋 नया बैच प्रॉम्प्ट कॉपी करें</button>
 <textarea id="pp" readonly></textarea>
@@ -52,15 +51,14 @@ pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8
 <textarea id="in" placeholder="# Psychology Fact&#10;Your post text...&#10;---&#10;# Healing Quote&#10;..."></textarea>
 <div class="row">
 <div><label>साइज़</label><select id="sz"><option value="1080">Square 1080×1080</option><option value="1350">Portrait 1080×1350</option><option value="1920">Story 1080×1920</option></select></div>
-<div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (76)</option><option value="new">सिर्फ़ नए 66</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
+<div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (124)</option><option value="new">सिर्फ़ नए 114</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
 </div>
 <label><input type="checkbox" id="dc" checked style="width:auto"> पुरानी (दोहराई) पोस्ट अपने आप छोड़ो और नई पोस्ट इतिहास में जोड़ो (कम पड़ें तो "बाकी पोस्ट" का प्रॉम्प्ट मिलेगा)</label>
 <div class="row">
 <button onclick="go()">✨ फिर से बनाओ</button>
 <button class="g" onclick="sample()">नमूना भरें</button>
-<button class="g" onclick="allD()">🎨 सारे 76 डिज़ाइन देखें</button>
-<button class="g" id="zb" onclick="zip()" style="display:none">⬇ इमेजेस ZIP में</button>
-<button id="rb" onclick="recAll()" style="display:none">🎬 सारी रील्स बनाओ</button>
+<button class="g" onclick="allD()">🎨 सारे 124 डिज़ाइन देखें</button>
+<button class="g" id="zb" onclick="zip()" style="display:none">⬇ सब ZIP में</button>
 </div>
 <div id="st"></div>
 <div class="grid" id="g"></div>
@@ -242,21 +240,21 @@ function tag(c,t,x,y,ac,al){
   c.fillStyle=hex(ac,.16);rr(c,x0,y-33,w,66,33);c.fill();c.strokeStyle=ac;c.lineWidth=2.5;c.stroke();
   c.fillStyle=ac;c.textAlign="center";c.textBaseline="middle";c.fillText(s,x0+w/2,y+3);
 }
-let RD={},RI=null,recBusy=0;
 function lay(c,p,P,wm,o){
   o=Object.assign({},LVc,o||{});
-  const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260,HL=H;
-  const dr=(kd,fn)=>{if(RI)RI.push({k:kd,fn});else fn(c)};
+  const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260;
   {const lt=o.col&&o.col.length==7&&o.col!="#ffffff",py=o.nt?245:205;
-   dr("p",k=>{k.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(k,64,py,W-128,HL-150-py,44);k.fill();
-   k.strokeStyle=hex(ac,.55);k.lineWidth=3;rr(k,64,py,W-128,HL-150-py,44);k.stroke()})}
-  if(p.label&&!o.nt){dr("t",k=>{o.lb?tag2(k,p.label,x0,165,ac,al,o.lb,o.tc):tag(k,p.label,x0,165,ac,al)})}
+   c.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(c,64,py,W-128,H-150-py,44);c.fill();
+   c.strokeStyle=hex(ac,.55);c.lineWidth=3;rr(c,64,py,W-128,H-150-py,44);c.stroke()}
+  if(p.label&&!o.nt){o.lb?tag2(c,p.label,x0,165,ac,al,o.lb,o.tc):tag(c,p.label,x0,165,ac,al)}
   const f=fit(c,p.body,mw,bot-top,o.fam,o.big);
-  const sp=Math.max(0,bot-top-f.l.length*f.lh),vp=o.vp==null?.5:o.vp,y0=top+sp*vp+f.lh/2;
-  f.l.forEach((l,j)=>{const yy=y0+j*f.lh,fc=(o.hl&&j==0&&f.l.length>1)?ac:col;
-    dr("l",k=>{k.font=f.f;k.textAlign=al;k.textBaseline="middle";if(o.glow){k.shadowColor=ac;k.shadowBlur=30}k.fillStyle=fc;k.fillText(l,x0,yy);k.shadowBlur=0})});
-  dr("b",k=>{k.fillStyle=ac;rr(k,al=="center"?W/2-45:x0,bot+22,90,7,3.5);k.fill()});
-  if(p.au)dr("a",k=>{k.font=`500 34px ${N}`;k.textAlign=al;k.textBaseline="middle";k.fillStyle=ac;k.fillText(p.au,x0,bot+75)});
+  c.font=f.f;c.textAlign=al;c.textBaseline="middle";
+  if(o.glow){c.shadowColor=ac;c.shadowBlur=30}
+  const sp=Math.max(0,bot-top-f.l.length*f.lh),vp=o.vp==null?.5:o.vp;
+  let y=top+sp*vp+f.lh/2;
+  f.l.forEach((l,j)=>{c.fillStyle=(o.hl&&j==0&&f.l.length>1)?ac:col;c.fillText(l,x0,y);y+=f.lh});c.shadowBlur=0;
+  c.fillStyle=ac;rr(c,al=="center"?W/2-45:x0,bot+22,90,7,3.5);c.fill();
+  if(p.au){c.font=`500 34px ${N}`;c.textAlign=al;c.fillStyle=ac;c.fillText(p.au,x0,bot+75)}
 }
 const T=[
  (c,p,P,wm)=>{mesh(c,P);dots(c,P[2],.07);lay(c,p,P,wm)},
@@ -454,7 +452,87 @@ const NEW2=[
  ["lt",[["tri2","a",.95]],{lb:"solid"}]
 ].map(s=>MK(s[0],s[1],s[2],true));
 
-T.push(...NEW1,...NEW2);
+
+/* ===== EXTRA PATTERNS + BACKGROUNDS (48 more designs) ===== */
+Object.assign(BG,{
+ tri:(c,P,A)=>{const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,P[0]);g.addColorStop(.55,P[1]);g.addColorStop(1,dk(A,.55));c.fillStyle=g;c.fillRect(0,0,W,H)},
+ rad2:(c,P)=>rg(c,P[1],P[0],W*.2,H*.15,H*.9),
+ split:(c,P)=>{fl(c,P[0]);c.fillStyle=P[1];c.fillRect(0,H*.5,W,H*.5)},
+ ltw:(c,P,A,B)=>{fl(c,B);c.fillStyle=hex(A,.1);c.fillRect(0,H*.62,W,H*.38)},
+ ltr:(c,P,A,B)=>rg(c,"#ffffff",B,W/2,H*.4,H*.85)
+});
+Object.assign(DC,{
+ scallop:(c,k,a)=>{c.fillStyle=hex(k,a);for(let x=0;x<=W+60;x+=60){circ(c,x,0,34);c.fill();circ(c,x,H,34);c.fill()}},
+ wavy:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let y=60;y<H;y+=70){c.beginPath();for(let x=0;x<=W;x+=14)c.lineTo(x,y+Math.sin(x/70+y/40)*14);c.stroke()}},
+ confetti:(c,k,a,r)=>{c.fillStyle=hex(k,a);for(let i=0;i<46;i++){const [x,y]=pt(r),w=8+r()*16,h=18+r()*28;c.save();c.translate(x,y);c.rotate(r()*6.28);c.fillRect(-w/2,-h/2,w,h);c.restore()}},
+ bubble:(c,k,a,r)=>{c.strokeStyle=hex(k,a);c.lineWidth=4;for(let i=0;i<20;i++){const [x,y]=pt(r),s=14+r()*60;circ(c,x,y,s);c.stroke()}},
+ petal:(c,k,a)=>{c.fillStyle=hex(k,a);[[0,0],[W,H]].forEach(([x,y])=>{for(let j=0;j<10;j++){c.save();c.translate(x,y);c.rotate(j*Math.PI/5);c.beginPath();c.ellipse(210,0,150,52,0,0,7);c.fill();c.restore()}})},
+ ribbon:(c,k,a)=>{c.fillStyle=hex(k,a);c.beginPath();c.moveTo(0,H*.12);c.lineTo(W,H*.04);c.lineTo(W,H*.04+70);c.lineTo(0,H*.12+70);c.closePath();c.fill();c.beginPath();c.moveTo(0,H*.88);c.lineTo(W,H*.94);c.lineTo(W,H*.94+60);c.lineTo(0,H*.88+60);c.closePath();c.fill()},
+ vlines:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=2;for(let x=30;x<W;x+=44){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}},
+ halftone:(c,k,a)=>{c.fillStyle=hex(k,a);for(let y=30;y<H;y+=44)for(let x=30;x<W;x+=44){circ(c,x,y,1+(y/H)*13);c.fill()}},
+ topo:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let i=1;i<=14;i++){c.beginPath();for(let q=0;q<=64;q++){const t=q/64*6.2832,R=i*62+Math.sin(t*3+i)*18;c.lineTo(W*.5+Math.cos(t)*R*1.1,H*.5+Math.sin(t)*R)}c.closePath();c.stroke()}},
+ film:(c,k,a)=>{c.fillStyle=hex(k,a);for(let y=24;y<H;y+=64){rr(c,18,y,26,38,6);c.fill();rr(c,W-44,y,26,38,6);c.fill()}},
+ stairs:(c,k,a)=>{c.fillStyle=hex(k,a);for(let i=0;i<7;i++)c.fillRect(W-(i+1)*70,H-(7-i)*34,(i+1)*70,(7-i)*34)},
+ sun:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=8;for(let i=1;i<=6;i++){c.beginPath();c.arc(W/2,H,i*120,Math.PI,0);c.stroke()}},
+ squig:(c,k,a,r)=>{c.strokeStyle=hex(k,a);c.lineWidth=6;c.lineCap="round";for(let i=0;i<14;i++){const [x,y]=pt(r);c.beginPath();c.moveTo(x,y);for(let j=1;j<=4;j++)c.quadraticCurveTo(x+j*26-13,y+(j%2?-22:22),x+j*26,y);c.stroke()}c.lineCap="butt"}
+});
+/* designs 77-100: more dark styles */
+const NEW3=[
+ ["tri",[["scallop","a",.5]],{lb:"solid"}],
+ ["night",[["wavy","a",.1]],{lb:"plain"}],
+ ["rad2",[["confetti","a",.35]],{}],
+ ["ink",[["bubble","a",.25]],{glow:1,lb:"plain"}],
+ ["d",[["petal","a",.18]],{fam:"S",lb:"line"}],
+ ["s0",[["ribbon","a",.85]],{al:"left",lb:"solid"}],
+ ["vr",[["vlines","f",.06],["frame","a",.6]],{lb:"line"}],
+ ["night",[["halftone","a",.14]],{lb:"solid"}],
+ ["dr",[["topo","f",.07]],{fam:"S"}],
+ ["ink",[["film","a",.5]],{lb:"plain"}],
+ ["split",[["stairs","a",.9]],{al:"left",lb:"solid"}],
+ ["radt",[["sun","a",.3]],{lb:"line"}],
+ ["acg",[["squig","f",.3]],{lb:"solid"}],
+ ["tri",[["spark","f",.4],["dash","a",.5]],{fam:"S",lb:"plain"}],
+ ["rad2",[["heart","a",.16],["scallop","a",.35]],{lb:"solid"}],
+ ["v",[["confetti","f",.25]],{glow:1,lb:"plain"}],
+ ["ink",[["topo","a",.12]],{fam:"S",lb:"line"}],
+ ["s0",[["bubble","a",.3],["topbar","a",1]],{al:"left",lb:"solid"}],
+ ["night",[["sun","a",.28],["star","f",.35]],{fam:"S",lb:"plain"}],
+ ["split",[["wavy","f",.08]],{lb:"line"}],
+ ["d",[["halftone","f",.08],["brk","a",.8]],{lb:"solid"}],
+ ["ac",[["petal","f",.14],["film","f",.4]],{lb:"plain"}],
+ ["dr",[["vlines","a",.12],["ribbon","a",.7]],{fam:"S",lb:"line"}],
+ ["ink",[["stairs","a",.8],["dot","f",.08]],{al:"left",lb:"plain"}]
+].map(x=>MK(x[0],x[1],x[2],false));
+/* designs 101-124: more light styles */
+const NEW4=[
+ ["ltw",[["scallop","a",.6]],{lb:"solid"}],
+ ["lt",[["wavy","a",.14]],{fam:"S",lb:"plain"}],
+ ["ltr",[["confetti","a",.4]],{lb:"line"}],
+ ["lt",[["bubble","a",.3]],{lb:"solid"}],
+ ["ltg",[["petal","a",.2]],{fam:"S",lb:"line"}],
+ ["lt",[["ribbon","a",.9]],{al:"left",lb:"plain"}],
+ ["lt",[["vlines","a",.1],["frameR","a",.8]],{lb:"solid"}],
+ ["ltr",[["halftone","a",.14]],{lb:"line"}],
+ ["lt",[["topo","a",.14]],{fam:"S",lb:"plain"}],
+ ["ltw",[["film","a",.6]],{lb:"solid"}],
+ ["lt",[["stairs","a",.9]],{al:"left",lb:"line"}],
+ ["ltg",[["sun","a",.3]],{fam:"S",lb:"plain"}],
+ ["lt",[["squig","a",.35]],{lb:"solid"}],
+ ["ltr",[["spark","a",.5],["dash","a",.7]],{fam:"S",lb:"line"}],
+ ["ltw",[["heart","a",.14],["scallop","a",.5]],{lb:"plain"}],
+ ["lt",[["confetti","a",.3],["topbar","a",1]],{lb:"solid"}],
+ ["ltg",[["topo","a",.1]],{al:"left",fam:"S",lb:"line"}],
+ ["lt",[["bubble","a",.25],["side","a",1]],{lb:"plain"}],
+ ["ltw",[["sun","a",.25]],{fam:"S",lb:"solid"}],
+ ["ltr",[["wavy","a",.1],["dbl","a",.7]],{lb:"line"}],
+ ["lt",[["halftone","a",.1],["brk","a",1]],{lb:"solid"}],
+ ["ltg",[["petal","a",.14],["film","a",.4]],{lb:"plain"}],
+ ["lt",[["vlines","a",.08],["ribbon","a",.8]],{fam:"S",lb:"line"}],
+ ["ltw",[["stairs","a",.8],["polka","a",.06]],{al:"left",lb:"solid"}]
+].map(x=>MK(x[0],x[1],x[2],true));
+
+T.push(...NEW1,...NEW2,...NEW3,...NEW4);
+const LIGHT=new Set([9]);for(let i=43;i<76;i++)LIGHT.add(i);for(let i=100;i<T.length;i++)LIGHT.add(i);
 async function lf(){try{await document.fonts.load('700 40px "Noto Sans Devanagari"',"अआक");await document.fonts.load('400 40px "Tiro Devanagari Hindi"',"अआक");await document.fonts.load("700 40px Poppins","Ab");await document.fonts.load('400 40px "Playfair Display"',"Ab");await document.fonts.ready}catch(e){}}
 async function allD(){
   const st=$("st"),en=$("lg").value=="en";
@@ -466,142 +544,28 @@ async function allD(){
   st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
   $("zb").style.display="block";
 }
-
-/* ===== REEL ENGINE ===== */
-const RDUR=15;
-function reelScore(p){
-  const t=(p.label||"").toLowerCase(),n=p.body.split(/\s+/).length,ln=p.body.split("\n").length;
-  let sc=/fact|फैक्ट/.test(t)?3:/heal|हीलिंग/.test(t)?2.5:/relationship|रिलेशन|dating|डेट|tip|टिप/.test(t)?2:/quote|कोट/.test(t)?1.2:1.5;
-  sc+=n<8?0:n<=22?3:n<=30?1.5:0;
-  if(ln>=2&&ln<=3)sc+=1;
-  if(/\?|कभी|never|why|क्यों|stop|don.t|मत |नहीं|आख़िर|आखिर/i.test(p.body))sc+=1;
-  return sc+SR()*.6;
-}
-function pickReels(acc,K){
-  const sc=acc.map((p,i)=>({i,s:reelScore(p),t:(p.label||"?").toLowerCase()})).sort((a,b)=>b.s-a.s);
-  const out=[],cnt={};
-  const tryAdd=(strict)=>{for(const x of sc){if(out.length>=K)break;if(out.some(o=>o.i==x.i))continue;
-    if(strict&&(out.reduce((m,o)=>Math.min(m,Math.abs(o.i-x.i)),99)<2||(cnt[x.t]||0)>=3))continue;
-    out.push(x);cnt[x.t]=(cnt[x.t]||0)+1}};
-  tryAdd(true);tryAdd(false);
-  const m=new Map();out.forEach(o=>m.set(o.i,o.s));return m;
-}
-function mkPt(i,w,h){const r=RN(i*977+13);return Array.from({length:22},()=>({x:r()*w,y:r()*h,s:10+r()*26,v:40+r()*90,ph:r()*6.28}))}
-function pHeart(k,x,y,s){k.beginPath();k.moveTo(x,y+s*.3);k.bezierCurveTo(x-s,y-s*.3,x-s*.4,y-s,x,y-s*.4);k.bezierCurveTo(x+s*.4,y-s,x+s,y-s*.3,x,y+s*.3);k.fill()}
-function pStar(k,x,y,s){k.beginPath();for(let j=0;j<8;j++){const q=j*Math.PI/4,d=j%2?s*.28:s;k.lineTo(x+Math.cos(q)*d,y+Math.sin(q)*d)}k.closePath();k.fill()}
-const eo=x=>1-Math.pow(1-Math.max(0,Math.min(1,x)),3);
-function drawFrame(d,t){
-  const k=d.cv.getContext("2d"),w=d.cv.width,h=d.cv.height,u=t/RDUR;
-  k.setTransform(1,0,0,1,0,0);k.globalAlpha=1;k.shadowBlur=0;k.clearRect(0,0,w,h);
-  let s=1.08,ox=0,oy=0,rot=0;
-  if(d.m==0)s=1.06+.06*u;else if(d.m==1){ox=Math.sin(u*6.28)*18;oy=-u*45}else if(d.m==2){ox=-u*30;oy=-u*40}
-  else if(d.m==3)s=1.07+.03*Math.sin(u*18.85);else rot=Math.sin(u*6.28)*.015;
-  k.save();k.translate(w/2+ox,h/2+oy);k.rotate(rot);k.scale(s,s);k.drawImage(d.bg,-w/2,-h/2);k.restore();
-  k.fillStyle=hex(d.P[3],.32);
-  d.pt.forEach(q=>{const y=((q.y-q.v*t)%(h+80)+h+80)%(h+80)-40,x=q.x+Math.sin(t*.8+q.ph)*30;
-    if(d.ps==0)pHeart(k,x,y,q.s);else if(d.ps==1)pStar(k,x,y,q.s*.8);else{k.beginPath();k.arc(x,y,q.s*.7,0,7);k.fill()}});
-  const nl=d.items.filter(x=>x.k=="l").length,step=Math.min(1.2,6/Math.max(1,nl));let li=0;const be=1.2+nl*step;
-  d.items.forEach((it,ix)=>{
-    let st=0,du=.7;
-    if(it.k=="t"){st=.5;du=.6}else if(it.k=="l"){st=1+li*step;du=.8;li++}else if(it.k=="b"){st=be;du=.5}else if(it.k=="a"){st=be+.3;du=.6}
-    const e=eo((t-st)/du);if(e<=0)return;
-    const fl=it.k=="p"?0:(t>st+du?Math.sin(t*1.5+ix)*2.5:0);
-    k.save();k.globalAlpha=e;k.translate(0,it.k=="p"?0:(1-e)*40+fl);it.fn(k);k.restore();
-  });
-}
-/* ===== exact 15s MP4: WebCodecs H.264 + tiny MP4 muxer (frame-by-frame, not real-time) ===== */
-function mp4mux(S,desc,w,h,fps){
-  const u8=a=>new Uint8Array(a),z=n=>new Uint8Array(n);
-  const cat=(...a)=>{let n=0;a.forEach(x=>n+=x.length);const o=new Uint8Array(n);let p=0;a.forEach(x=>{o.set(x,p);p+=x.length});return o};
-  const u32=n=>u8([n>>>24&255,n>>>16&255,n>>>8&255,n&255]),u16=n=>u8([n>>8&255,n&255]),str=t=>u8([...t].map(c=>c.charCodeAt(0)));
-  const box=(t,...c)=>{const b=cat(...c);return cat(u32(b.length+8),str(t),b)};
-  const full=(t,v,fl,...c)=>box(t,u8([v,fl>>16&255,fl>>8&255,fl&255]),...c);
-  const n=S.length,ms=Math.round(n*1000/fps);let tot=0;S.forEach(x=>tot+=x.data.length);
-  const ftyp=box("ftyp",str("isom"),u32(512),str("isom"),str("iso2"),str("avc1"),str("mp41")),off=ftyp.length+8;
-  const mat=cat(u32(65536),z(12),u32(65536),z(12),u32(1073741824));
-  const mvhd=full("mvhd",0,0,u32(0),u32(0),u32(1000),u32(ms),u32(65536),u16(256),z(10),mat,z(24),u32(2));
-  const tkhd=full("tkhd",0,3,u32(0),u32(0),u32(1),u32(0),u32(ms),z(8),u16(0),u16(0),u16(0),u16(0),mat,u32(w*65536),u32(h*65536));
-  const mdhd=full("mdhd",0,0,u32(0),u32(0),u32(fps),u32(n),u16(0x55c4),u16(0));
-  const hdlr=full("hdlr",0,0,u32(0),str("vide"),z(12),str("VideoHandler"),z(1));
-  const vmhd=full("vmhd",0,1,z(8)),dinf=box("dinf",full("dref",0,0,u32(1),full("url ",0,1)));
-  const avc1=box("avc1",z(6),u16(1),z(16),u16(w),u16(h),u32(0x480000),u32(0x480000),u32(0),u16(1),z(32),u16(24),u16(65535),box("avcC",desc));
-  const ks=[];S.forEach((x,i)=>{if(x.key)ks.push(i+1)});
-  const stbl=box("stbl",full("stsd",0,0,u32(1),avc1),full("stts",0,0,u32(1),u32(n),u32(1)),full("stss",0,0,u32(ks.length),...ks.map(u32)),
-    full("stsc",0,0,u32(1),u32(1),u32(n),u32(1)),full("stsz",0,0,u32(0),u32(n),...S.map(x=>u32(x.data.length))),full("stco",0,0,u32(1),u32(off)));
-  const moov=box("moov",mvhd,box("trak",tkhd,box("mdia",mdhd,hdlr,box("minf",vmhd,dinf,stbl))));
-  return [ftyp,cat(u32(tot+8),str("mdat")),...S.map(x=>x.data),moov];
-}
-const slp=ms=>new Promise(r=>setTimeout(r,ms));
-async function encReel(d,btn){
-  const w=d.cv.width,h=d.cv.height,fps=30,N=RDUR*fps;let cfg=null;
-  for(const cd of ["avc1.640028","avc1.4D0028","avc1.42002A"]){const c={codec:cd,width:w,height:h,bitrate:6e6,framerate:fps,avc:{format:"avc"},latencyMode:"realtime"};
-    try{const r=await VideoEncoder.isConfigSupported(c);if(r.supported){cfg=c;break}}catch(e){}}
-  if(!cfg)return null;
-  const S=[];let desc=null,err=null;
-  const enc=new VideoEncoder({output:(ch,md)=>{const b=new Uint8Array(ch.byteLength);ch.copyTo(b);S.push({data:b,key:ch.type=="key"});
-    if(md&&md.decoderConfig&&md.decoderConfig.description)desc=new Uint8Array(md.decoderConfig.description)},error:e=>{err=e}});
-  enc.configure(cfg);
-  for(let i=0;i<N&&!err;i++){
-    while(enc.encodeQueueSize>6&&!err)await slp(4);
-    drawFrame(d,i/fps);
-    const fr=new VideoFrame(d.cv,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});
-    enc.encode(fr,{keyFrame:i%fps==0});fr.close();
-    if(i%8==0){btn.textContent="⏳ बन रही है "+Math.round(i/N*100)+"%";await slp(0)}
-  }
-  if(!err)await enc.flush();
-  try{enc.close()}catch(e){}
-  if(err||!desc||S.length<N)return null;
-  return mp4mux(S,desc,w,h,fps);
-}
-function saveBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click()}
-async function play(i,btn,save){
-  const d=RD[i];if(!d||recBusy)return;recBusy=1;const st=$("st"),old=btn.textContent,nm="reel-"+String(i+1).padStart(2,"0");let wl=null;
-  try{wl=await navigator.wakeLock.request("screen")}catch(e){}
-  const fin=()=>{drawFrame(d,7);btn.textContent=old;if(wl)try{wl.release()}catch(e){}recBusy=0};
-  try{
-    if(save&&window.VideoEncoder&&window.VideoFrame){
-      let parts=null;try{parts=await encReel(d,btn)}catch(e){console.error(e)}
-      if(parts){saveBlob(new Blob(parts,{type:"video/mp4"}),nm+".mp4");st.textContent="✓ रील "+(i+1)+" सेव हो गई (पूरे 15 सेकंड, MP4)।";fin();return}
-    }
-    let mr=null,mt="",ch=[];
-    if(save){
-      mt=window.MediaRecorder?["video/mp4;codecs=avc1.640028","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(m=>MediaRecorder.isTypeSupported(m)):"";
-      if(!mt){st.textContent="इस ब्राउज़र में वीडियो रिकॉर्डिंग नहीं चलती।";fin();return}
-      mr=new MediaRecorder(d.cv.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
-      mr.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};mr.start(250);
-    }
-    const t0=performance.now();
-    await new Promise(res=>{const tk=()=>{const t=Math.min(RDUR,(performance.now()-t0)/1000);drawFrame(d,t);btn.textContent=(save?"⏺ रिकॉर्ड ":"▶ ")+Math.ceil(RDUR-t)+" सेक";t>=RDUR?res():requestAnimationFrame(tk)};tk()});
-    if(mr){await slp(300);if(mr.state!="inactive")await new Promise(r=>{mr.onstop=r;mr.stop()});
-      saveBlob(new Blob(ch,{type:mt.split(";")[0]}),nm+(mt.includes("mp4")?".mp4":".webm"));st.textContent="✓ रील "+(i+1)+" सेव हो गई।"}
-  }catch(e){console.error(e);st.textContent="रील बनाने में दिक्कत आई: "+(e&&e.message||e)}
-  fin();
-}
-async function recAll(){
-  const ks=Object.keys(RD),st=$("st");let n=0;
-  for(const k of ks){if(recBusy)return;st.textContent="रील "+(++n)+"/"+ks.length+" बन रही है… स्क्रीन चालू रखें, टैब बदलें नहीं।";await play(+k,$("rbtn"+k),1)}
-  st.textContent="✓ सारी "+ks.length+" रील्स सेव हो गईं। (ब्राउज़र एक साथ कई डाउनलोड पूछे तो Allow करें)";
-}
 const LV=[{},{vp:.12},{vp:.88,hl:1},{hl:1},{vp:.2,hl:1},{vp:.8},{big:1},{vp:.5,hl:1,big:1}];
-function pickD(n,dm){
+function pickD(n,dm,rec){
   let pool=[...T.keys()];if(dm=="old")pool=pool.slice(0,10);else if(dm=="new")pool=pool.slice(10);
-  const isL=i=>i==9||i>=43,mk=()=>[shuf(pool.filter(i=>!isL(i))),shuf(pool.filter(isL))];
+  const isL=i=>LIGHT.has(i);let used=new Set((mem.du||[]).filter(i=>pool.includes(i)));
+  const mk=()=>{const f=pool.filter(i=>!used.has(i));return [shuf(f.filter(i=>!isL(i))),shuf(f.filter(isL))]};
   let [D,Lt]=mk(),out=[],wl=Math.random()<.5;
   while(out.length<n){
-    if(!D.length&&!Lt.length){[D,Lt]=mk()}
+    if(!D.length&&!Lt.length){used=new Set(out);[D,Lt]=mk()}
     let s=wl?Lt:D;if(!s.length)s=wl?D:Lt;
     out.push(s.pop());wl=!wl;
   }
+  if(rec){let du=(mem.du||[]).concat(out);if(du.length>pool.length)du=out.slice();mem.du=du;save()}
   return out;
 }
 async function go(){
   const txt=$("in").value,st=$("st"),TG=TGT(),raw=parse(txt);
-  if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];RD={};$("zb").style.display="none";$("rb").style.display="none";return}
+  if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];$("zb").style.display="none";return}
   H=+$("sz").value;const en=$("lg").value=="en";N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
   const wm="",chk=$("dc").checked;
   await lf();
   const stp=stamp();
-  let acc,skip=0,extra=0;
+  const reuse=!!(txt===last&&lastAcc);let acc,skip=0,extra=0;
   if(txt===last&&lastAcc){acc=lastAcc;skip=lastSkip;extra=lastExtra}
   else{
     if(last&&lastAdded.length&&txt.startsWith(last.trimEnd())){lastAdded.forEach(s=>{const k=mem.i.lastIndexOf(s);if(k>=0)mem.i.splice(k,1)})}
@@ -614,29 +578,17 @@ async function go(){
     if(chk){mem.i.push(...add);save()}
     lastAdded=chk?add:[];last=txt;lastAcc=acc;lastSkip=skip;lastExtra=extra;
   }
-  const order=pickD(acc.length,$("dm").value),g=$("g");g.innerHTML="";canv=[];
-  const RS=pickReels(acc,Math.max(0,Math.min(acc.length,+$("rn").value||0)));RD={};
+  const order=pickD(acc.length,$("dm").value,!reuse),g=$("g");g.innerHTML="";canv=[];
   acc.forEach((p,i)=>{
-    const isR=RS.has(i),sH=H;if(isR)H=1920;
     const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");
-    LVc=LV[(i*3+SO)%LV.length];RI=isR?[]:null;
-    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;if(isR)RI=[];try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
-    const items=RI;RI=null;
+    LVc=LV[(i*3+SO)%LV.length];
+    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
     canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);
-    if(isR){
-      const bg=document.createElement("canvas");bg.width=W;bg.height=H;bg.getContext("2d").drawImage(cv,0,0);
-      RD[i]={cv,bg,items,P:TP(i),m:i%5,ps:i%3,pt:mkPt(i,W,H)};drawFrame(RD[i],7);
-      const bd=document.createElement("div");bd.className="s";bd.style.margin="8px 0 0";bd.textContent="🎬 रील चुनी गई · स्कोर "+RS.get(i).toFixed(1);d.appendChild(bd);
-      const b1=document.createElement("button");b1.id="rbtn"+i;b1.textContent="⏺ रील बनाओ (15 सेक)";b1.onclick=()=>play(i,b1,1);d.appendChild(b1);
-      const b2=document.createElement("button");b2.className="g";b2.textContent="▶ प्रीव्यू देखो";b2.onclick=()=>play(i,b2,0);d.appendChild(b2);
-    }else{
-      const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);
-    }
-    H=sH;g.appendChild(d);
+    const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d);
   });
   LVc={};
   const long=acc.filter(p=>p.body.split(/\s+/).length>30).length;
-  let m=acc.length+"/"+TG+" पोस्ट तैयार · 🎬 "+Object.keys(RD).length+" रील + 🖼 "+(acc.length-Object.keys(RD).length)+" इमेज";
+  let m=acc.length+"/"+TG+" पोस्ट तैयार";
   if(skip)m+=" · "+skip+" पुरानी/दोहराई पोस्ट छोड़ीं";
   if(extra)m+=" · "+extra+" फ़ालतू पोस्ट छोड़ीं (सिर्फ़ पहली "+TG+" ली)";
   if(long)m+=" · ⚠ "+long+" पोस्ट 30 शब्द से लंबी हैं (टेक्स्ट छोटा दिखेगा)";
@@ -644,12 +596,12 @@ async function go(){
   else m+=" ✓";
   m+="<br><span style=\"color:var(--mut);font-size:12px\">"+stp+"</span>";
   st.innerHTML=m;
-  $("zb").style.display=canv.length?"block":"none";$("rb").style.display=Object.keys(RD).length?"block":"none";
+  $("zb").style.display=canv.length?"block":"none";
 }
 function dl(cv,i){cv.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="post-"+String(i+1).padStart(2,"0")+".png";a.click()})}
 async function zip(){
   const st=$("st");st.textContent="ZIP बन रही है…";
-  try{const z=new JSZip();for(let i=0;i<canv.length;i++){if(RD[i])continue;z.file("post-"+String(i+1).padStart(2,"0")+".png",await new Promise(r=>canv[i].toBlob(r)))}
+  try{const z=new JSZip();for(let i=0;i<canv.length;i++){z.file("post-"+String(i+1).padStart(2,"0")+".png",await new Promise(r=>canv[i].toBlob(r)))}
   const o=await z.generateAsync({type:"blob"}),a=document.createElement("a");a.href=URL.createObjectURL(o);a.download="posts.zip";a.click();st.textContent="ZIP तैयार।"}
   catch(e){st.textContent="ZIP में दिक्कत आई। हर पोस्ट अलग से डाउनलोड करें।"}
 }
