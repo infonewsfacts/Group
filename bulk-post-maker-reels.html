@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bulk Post Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@500;700;800&family=Tiro+Devanagari+Hindi&family=Poppins:wght@500;700;800&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:#f4f2ee;--card:#fff;--fg:#1d1d1f;--mut:#6b6b70;--ac:#6c5ce7;--bd:#dcdad4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141417;--card:#202025;--fg:#f2f2f4;--mut:#a0a0a8;--bd:#37373d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'Noto Sans Devanagari',system-ui,sans-serif;padding:16px;max-width:1100px;margin-inline:auto}
+h1{font-size:24px;margin:4px 0}
+h2{font-size:16px;margin:0 0 4px}
+.s{color:var(--mut);font-size:13px;margin:0 0 10px;line-height:1.5}
+.sec{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin:12px 0}
+textarea,input,select{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:10px;font:inherit;font-size:15px}
+textarea{min-height:200px;resize:vertical;line-height:1.5}
+#pp{min-height:120px;font-size:12px;display:none;margin-top:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.row>*{flex:1;min-width:130px}
+button{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+button.g{background:var(--bg);color:var(--fg);border:1px solid var(--bd)}
+label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px}
+.c canvas{width:100%;height:auto;border-radius:8px;display:block}
+.c button{width:100%;margin-top:8px;padding:8px;font-size:13px}
+#st{font-size:14px;margin:8px 0;line-height:1.5}
+#hc{font-size:13px;color:var(--mut);margin-bottom:8px}
+pre{white-space:pre-wrap;font:inherit;font-size:12.5px;color:var(--mut);margin:8px 0}
+</style>
+</head>
+<body>
+<h1>📸 Bulk Post Maker</h1>
+<p class="s">हर बैच में नई पोस्ट, कभी रिपीट नहीं। पोस्ट पेस्ट करते ही ठीक 25 इमेज, हर बार अलग डिज़ाइन।</p>
+
+<div class="sec">
+<h2>① नया बैच प्रॉम्प्ट</h2>
+<p class="s">कॉपी करके किसी भी AI या Claude Project में पेस्ट करें। हर बार नए विषय मिलते हैं और पुरानी पोस्ट की लिस्ट साथ जाती है।</p>
+<div class="row"><div style="flex:0 0 120px;min-width:110px"><label>Language</label><select id="lg" onchange="lgc()"><option value="en" selected>English</option><option value="hi">हिंदी</option></select></div><div style="flex:0 0 90px;min-width:90px"><label>कितनी पोस्ट</label><input id="n" type="number" value="25" min="1" max="50"></div>
+<div style="flex:0 0 90px;min-width:90px"><label>इनमें रील</label><input id="rn" type="number" value="9" min="0" max="25"></div>
+<div style="flex:3"><label>पोस्ट के प्रकार (कॉमा से अलग)</label><input id="ty" value="Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote"></div></div>
+<button onclick="pr()">📋 नया बैच प्रॉम्प्ट कॉपी करें</button>
+<textarea id="pp" readonly></textarea>
+</div>
+
+<div class="sec">
+<h2>② पोस्ट पेस्ट करें, इमेज अपने आप बनेंगी</h2>
+<textarea id="in" placeholder="# Psychology Fact&#10;Your post text...&#10;---&#10;# Healing Quote&#10;..."></textarea>
+<div class="row">
+<div><label>साइज़</label><select id="sz"><option value="1080">Square 1080×1080</option><option value="1350">Portrait 1080×1350</option><option value="1920">Story 1080×1920</option></select></div>
+<div><label>डिज़ाइन</label><select id="dm"><option value="all">सब मिक्स (76)</option><option value="new">सिर्फ़ नए 66</option><option value="old">सिर्फ़ पुराने 10</option></select></div>
+</div>
+<label><input type="checkbox" id="dc" checked style="width:auto"> पुरानी (दोहराई) पोस्ट अपने आप छोड़ो और नई पोस्ट इतिहास में जोड़ो (कम पड़ें तो "बाकी पोस्ट" का प्रॉम्प्ट मिलेगा)</label>
+<div class="row">
+<button onclick="go()">✨ फिर से बनाओ</button>
+<button class="g" onclick="sample()">नमूना भरें</button>
+<button class="g" onclick="allD()">🎨 सारे 76 डिज़ाइन देखें</button>
+<button class="g" id="zb" onclick="zip()" style="display:none">⬇ इमेजेस ZIP में</button>
+<button id="rb" onclick="recAll()" style="display:none">🎬 सारी रील्स बनाओ</button>
+</div>
+<div id="st"></div>
+<div class="grid" id="g"></div>
+</div>
+
+<div class="sec">
+<h2>③ इतिहास</h2>
+<div id="hc"></div>
+<div class="row">
+<button class="g" onclick="ex()">⬇ इतिहास फाइल सेव</button>
+<button class="g" onclick="$('fi').click()">⬆ इतिहास लोड</button>
+<button class="g" onclick="clr()">🗑 साफ़ करें</button>
+</div>
+<input type="file" id="fi" accept=".txt" style="display:none" onchange="im(this)">
+<p class="s">इतिहास इस ब्राउज़र में सेव रहता है। दूसरे फोन या कंप्यूटर पर जाने से पहले फाइल सेव कर लें।</p>
+<details><summary class="s"><b>Claude Project में इस्तेमाल</b></summary>
+<pre id="pi"></pre>
+<button class="g" onclick="navigator.clipboard.writeText($('pi').innerText).catch(()=>{})">Project instructions कॉपी करें</button>
+</details>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let N='"Noto Sans Devanagari",sans-serif',SF='"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
+const PAL=[["#1f1c2c","#928dab","#fff","#ffd166"],["#0f2027","#2c5364","#fff","#ffb703"],["#42275a","#734b6d","#fff","#f8c8dc"],["#870000","#190a05","#fff","#ffcc70"],["#134e5e","#71b280","#fff","#fff3b0"],["#ff512f","#dd2476","#fff","#ffe29a"],["#232526","#414345","#fff","#ff6b6b"],["#141e30","#243b55","#fff","#7ee8fa"],["#2d1b69","#11998e","#fff","#fdf497"],["#3a1c71","#d76d77","#fff","#ffe8a3"],["#0f0c29","#302b63","#fff","#f093fb"],["#093028","#237a57","#fff","#f6d365"]];
+const POOL="अटैचमेंट स्टाइल,बॉडी लैंग्वेज,पहली डेट,ब्रेकअप के बाद हीलिंग,रेड फ्लैग्स,ग्रीन फ्लैग्स,इग्नोर करने की साइकोलॉजी,ओवरथिंकिंग,सेल्फ-लव,भरोसा,ईर्ष्या,लॉन्ग डिस्टेंस रिलेशनशिप,कम्युनिकेशन,झगड़े के बाद सुलह,एक्स की याद,अकेलापन,क्रश की साइकोलॉजी,आकर्षण के कारण,टॉक्सिक रिश्ते,इमोशनल सेफ्टी,रिस्पेक्ट,पर्सनल स्पेस,मन की बात छुपाना,फ़र्स्ट इम्प्रेशन,टेक्स्टिंग की आदतें,प्यार बनाम आदत,माफ़ करना,बचपन का रिश्तों पर असर,लव लैंग्वेज,शादी के बाद रिश्ता,दोस्ती और प्यार,रिजेक्शन से निपटना,गैसलाइटिंग,लव बॉम्बिंग,घोस्टिंग,इमोशनल इंटेलिजेंस,सहानुभूति,तारीफ़ की ताक़त,चुप्पी का मतलब,आत्म-सम्मान,बॉउंड्रीज़,डर और कमिटमेंट,सच्चा प्यार कैसा दिखता है,पुरुषों की भावनाएँ,महिलाओं की भावनाएँ,रिश्ते में बराबरी,समय देना,छोटी बातों की अहमियत,ग़लतफ़हमी,अहंकार,पहला प्यार,दिल टूटने का विज्ञान,आदतों से रिश्ते,मूड स्विंग्स,तुलना का ज़हर,फ़ैसले की उलझन,खुशी की साइकोलॉजी,आकर्षण में रहस्य,सोशल मीडिया और रिश्ते,बात करने का तरीका,भावनात्मक निर्भरता,अपनी कीमत पहचानना".split(",");
+const POOL_EN="Attachment styles,Body language,First dates,Healing after a breakup,Red flags,Green flags,Psychology of ignoring,Overthinking,Self-love,Trust,Jealousy,Long-distance love,Communication,Making up after a fight,Missing an ex,Loneliness,Psychology of a crush,Why we feel attraction,Toxic relationships,Emotional safety,Respect,Personal space,Hiding your feelings,First impressions,Texting habits,Love vs habit,Forgiveness,Childhood and relationships,Love languages,Marriage and love,Friendship vs love,Handling rejection,Gaslighting,Love bombing,Ghosting,Emotional intelligence,Empathy,Power of compliments,Meaning of silence,Self-respect,Boundaries,Fear of commitment,What real love looks like,Men's emotions,Women's emotions,Equality in love,Giving time,Small gestures,Misunderstandings,Ego,First love,Science of heartbreak,Habits that shape love,Mood swings,Toxic comparison,Decision paralysis,Psychology of happiness,Mystery and attraction,Social media and relationships,How you speak,Emotional dependence,Knowing your worth".split(",");
+const EN_S=`# Psychology Fact
+Your brain remembers unfinished things better than finished ones. This is called the Zeigarnik effect.
+---
+# Relationship Tip
+You don’t have to win every argument. Sometimes winning the relationship matters more.
+---
+# Healing Quote
+Healing begins the moment you stop explaining yourself to people who chose not to understand.
+---
+# Dating Tip
+Don’t try to impress on the first date. Listen closely and let them feel seen.`;
+const PI_EN="You are my content writer for a Facebook page about relationships, psychology and dating (English). When I paste a “New batch prompt”, follow its rules, format, topics and the “Already used” list strictly. Output only the posts: no introduction, no commentary, no questions.";
+const PI_HI="तुम मेरे फेसबुक ग्रुप (रिलेशनशिप, साइकोलॉजी, डेटिंग; हिंदी) के कंटेंट राइटर हो। जब मैं “नया बैच प्रॉम्प्ट” पेस्ट करूँ, तो उसमें दिए नियम, फॉर्मेट, विषय और “पहले आ चुकी पोस्ट” की लिस्ट का सख़्ती से पालन करो। सिर्फ पोस्ट का आउटपुट दो, कोई भूमिका या टिप्पणी नहीं।";
+function lgp(){const en=$("lg").value=="en";$("pi").textContent=en?PI_EN:PI_HI;$("in").placeholder=en?"# Psychology Fact\nYour post text...\n---\n# Healing Quote\n...":"# साइकोलॉजी फैक्ट\nपोस्ट का टेक्स्ट...\n---\n# कोट\n..."}
+function lgc(){const en=$("lg").value=="en";$("ty").value=en?"Psychology Fact, Psychology Quote, Relationship Tip, Dating Tip, Healing Quote":"साइकोलॉजी फैक्ट, साइकोलॉजी कोट, रिलेशनशिप टिप, डेटिंग टिप, हीलिंग कोट";lgp()}
+lgp();
+let W=1080,H=1080,canv=[],last="",mem={b:0,i:[],tu:[]};
+try{const s=localStorage.getItem("bpm2");if(s)mem=JSON.parse(s)}catch(e){}
+function save(){try{localStorage.setItem("bpm2",JSON.stringify(mem))}catch(e){}ui()}
+function ui(){$("hc").textContent=mem.i.length+" पोस्ट इतिहास में · अब तक "+mem.b+" बैच"}ui();
+const norm=s=>s.replace(/[^\u0900-\u097Fa-zA-Z0-9 ]/g," ").replace(/\s+/g," ").trim();
+const SW=new Set("the,and,for,are,but,not,you,your,that,this,with,from,they,them,their,have,has,had,was,were,will,can,who,what,when,how,why,its,than,then,into,more,most,just,only,very,also,one,all,any,our,out,about,because,which,there,often,people".split(","));
+const ws=s=>new Set(norm(s).toLowerCase().split(" ").filter(w=>w.length>2&&!SW.has(w)));
+function dup(body,extra){const a=ws(body);if(a.size<5)return false;for(const it of mem.i.concat(extra)){const b=ws(it);let n=0;a.forEach(w=>{if(b.has(w))n++});if(n/(a.size+b.size-n)>.75)return true}return false}
+const snip=b=>b.replace(/\n/g," ").slice(0,160);
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(SR()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+let LVc={},lastAcc=null,lastAdded=[],lastSkip=0,lastExtra=0;
+const TGT=()=>Math.max(1,Math.min(50,+$("n").value||25));
+const FM_EN=["a surprising fact with a small twist","a short question that makes the reader think, then a one-line answer","three very short lines, no numbering","one punchy line like a quote","gentle advice that starts with a verb","an if-then observation","a tiny contrast between two things","a comfort line spoken straight to the reader"];
+const FM_HI=["चौंकाने वाला छोटा फैक्ट","एक सोचने वाला सवाल और एक लाइन का जवाब","तीन बहुत छोटी लाइनें, बिना नंबर","एक असरदार कोट जैसी लाइन","क्रिया से शुरू होने वाली नरम सलाह","अगर-तो वाली बात","दो चीज़ों का छोटा फ़र्क़","सीधे पढ़ने वाले से कही गई तसल्ली की बात"];
+function bp(n,inc){
+  const ty=$("ty").value.split(",").map(s=>s.trim()).filter(Boolean),en=$("lg").value=="en",PL=en?POOL_EN:POOL,NL="\n";
+  let av=PL.filter(t=>!mem.tu.includes(t));if(av.length<n){mem.tu=[];av=PL.slice()}
+  const tp=shuf(av).slice(0,n);mem.tu.push(...tp);if(inc)mem.b++;save();
+  const used=mem.i.slice(-800).map(x=>"- "+x.split(" ").slice(0,8).join(" "));
+  const FM=en?FM_EN:FM_HI,off=Math.floor(Math.random()*FM.length),so=inc?0:Math.floor(Math.random()*Math.max(1,ty.length));
+  const L=tp.map((x,i)=>`${i+1}. ${ty[(i+so)%ty.length]||(en?"Post":"पोस्ट")} | ${en?"Topic":"विषय"}: ${x} | ${en?"Style hint":"शैली"}: ${FM[(i+off)%FM.length]}`).join(NL);
+  const ul=used.length?used.join(NL):(en?"(none yet)":"(अभी कोई नहीं)");
+  if(en)return `You are the content writer for a Facebook page about relationships, psychology and dating. Your readers scroll on their phones and share what makes them feel understood. ${inc?"Batch #"+mem.b:"Top-up for the current batch (the earlier posts of this batch are already in the used list)"}: write exactly ${n} completely new posts, no more and no fewer.
+
+Voice:
+- Simple, warm, punchy English. Short words, short sentences. Sound like a wise friend, not a textbook.
+- Each post is 1 to 3 short lines and at most 30 words, so it can be read in five seconds on a poster image.
+- No two posts in this batch may start with the same word, and go easy on "You", "Love is" and "Sometimes".
+
+Quality:
+- One clear idea per post that stands alone, with a small surprise, a sting or a comfort in the last line.
+- Psychology facts must be real, well-documented findings. Name an effect only if you are certain of it (for example, the Zeigarnik effect). Never invent statistics, percentages or studies.
+- Quotes must be real. Add the author only if you are sure; otherwise write it as an unattributed line and do not present it as someone's quote.
+- Tips must be practical and kind, never manipulative and never about "winning" a person.
+- No emojis, hashtags, numbering, bold text or quotation marks around the post.
+
+Variety (very important):
+- Follow the "Style hint" of each post below so the batch never feels like the same sentence repeated. For a Quote type, ignore the hint and write a real quote instead.
+- Every post needs a different opening word and a different sentence shape.
+- No two posts may carry the same idea, even across different topics.
+
+Freshness:
+- Never repeat, or closely paraphrase, any fact, idea or quote from the “Already used” list below.
+- Keep the exact post type and topic given for each post.
+
+Before you answer, silently check: exactly ${n} posts, no two alike, no repeated opening word, none above 30 words, nothing from the “Already used” list. Fix any problem, then output.
+
+Output format (this only, no intro or commentary; put --- on its own line between posts):
+# Post type
+Main text
+— Author (real quotes only, otherwise leave this line out)
+---
+
+Posts for this batch:
+${L}
+
+Already used (do not repeat):
+${ul}`;
+  return `तुम एक हिंदी सोशल-मीडिया कंटेंट राइटर हो। ${inc?"बैच #"+mem.b:"मौजूदा बैच की कमी पूरी करनी है (इस बैच की पहले की पोस्ट नीचे “पहले आ चुकी पोस्ट” में हैं)"}: मुझे ठीक ${n} बिल्कुल नई पोस्ट चाहिए, न कम न ज़्यादा।
+
+नियम:
+- हर पोस्ट 1 से 3 छोटी लाइन की हो (ज़्यादा से ज़्यादा 30 शब्द), आसान हिंदी में, असरदार और भावनात्मक।
+- नीचे “पहले आ चुकी पोस्ट” की लिस्ट में जो भी बात, फैक्ट या कोट है, उसे या उससे मिलती-जुलती कोई भी चीज़ दोबारा मत लिखना।
+- सिर्फ सही साइकोलॉजी फैक्ट्स और असली कोट्स लिखो। कोट में लेखक का नाम तभी दो जब पक्का हो, वरना बिना नाम के लिखो।
+- इमोजी, हैशटैग, नंबर, बोल्ड या पोस्ट के चारों ओर इनवर्टेड कॉमा मत लगाओ।
+- हर पोस्ट के लिए नीचे दिया गया प्रकार और विषय ही रखो।
+
+विविधता (बहुत ज़रूरी):
+- हर पोस्ट की “शैली” का पालन करो ताकि पूरा बैच एक जैसा न लगे। कोट वाले प्रकार में शैली छोड़कर असली कोट लिखो।
+- हर पोस्ट की शुरुआत का शब्द और वाक्य का ढाँचा अलग हो।
+- इस बैच की कोई भी दो पोस्ट आपस में मिलती-जुलती न हों, चाहे विषय अलग हों।
+
+जवाब देने से पहले चुपचाप जाँच लो: ठीक ${n} पोस्ट हैं, कोई दो एक जैसी नहीं, कोई शुरुआती शब्द दोहराया नहीं गया, कोई पोस्ट 30 शब्द से लंबी नहीं, और “पहले आ चुकी पोस्ट” से कुछ नहीं मिलता। गड़बड़ी हो तो ठीक करके ही जवाब दो।
+
+आउटपुट फॉर्मेट (सिर्फ यही, कोई भूमिका या टिप्पणी नहीं; दो पोस्ट के बीच अलग लाइन में ---):
+# पोस्ट का प्रकार
+मुख्य टेक्स्ट
+— लेखक (सिर्फ कोट में, वैकल्पिक)
+---
+
+इस बैच की पोस्ट:
+${L}
+
+पहले आ चुकी पोस्ट (इन्हें दोबारा मत लिखना):
+${ul}`;
+}
+function cp(t,msg){
+  const p=$("pp");p.style.display="block";p.value=t;
+  navigator.clipboard.writeText(t).then(()=>$("st").textContent=msg).catch(()=>{p.select();$("st").textContent="नीचे का टेक्स्ट कॉपी करें।"});
+}
+function pr(){cp(bp(TGT(),true),"प्रॉम्प्ट कॉपी हो गया।")}
+function more(){
+  const need=Math.max(1,TGT()-(lastAcc?lastAcc.length:0));
+  cp(bp(need,false),"बाकी "+need+" पोस्ट का प्रॉम्प्ट कॉपी हो गया। AI का जवाब इसी बॉक्स में नीचे जोड़ें।");
+}
+/* Title Case for English text (Hindi is unaffected); small words stay lowercase unless they start a sentence */
+const SMW=new Set("a,an,the,and,but,or,nor,for,so,yet,as,at,by,in,of,on,to,up,off,per,via".split(","));
+function tcase(t){return(t||"").split("\n").map(l=>{let first=true;return l.split(" ").map(w=>{
+  const lw=w.replace(/^[^A-Za-z]+/,"").toLowerCase().replace(/[^a-z]+$/,"");let r=w;
+  if(/[A-Za-z]/.test(w)){r=(SMW.has(lw)&&!first)?w.replace(/[A-Za-z]/,m=>m.toLowerCase()):w.replace(/[A-Za-z]/,m=>m.toUpperCase())}
+  first=/[.!?…]["”’)]*$/.test(w);return r}).join(" ")}).join("\n")}
+const TC=p=>Object.assign({},p,{body:tcase(p.body),label:tcase(p.label||"")});
+function clean(s){
+  return s.replace(/\*\*|__|`/g,"").replace(/^[\s>*•-]+/,"").replace(/^\d+[.)]\s+/,"").replace(/^["“”]+|["“”]+$/g,"").trim();
+}
+function parse(t){
+  t=t.replace(/\r/g,"").replace(/^[ \t]*(#+)/gm,"\n---\n$1");
+  const arr=t.split(/\n\s*-{3,}\s*(?:\n|$)/).map(b=>b.replace(/^(?:\s*-{3,}[ \t]*(?:\n|$))+/,"").trim()).filter(Boolean).map(b=>{
+    let L=b.split("\n").map(x=>x.trim()).filter(Boolean),label="",au="";
+    if(L[0]&&L[0].startsWith("#"))label=clean(L.shift().replace(/^#+\s*/,""));
+    if(L.length>1&&/^(—|–|--)\s*/.test(L[L.length-1]))au=L.pop().replace(/^(—|–|--)\s*/,"— ");
+    L=L.map(clean).filter(x=>x&&!/^(post|पोस्ट)\s*\d+\s*[:.]?$/i.test(x));
+    return{label,au,body:L.join("\n")};
+  }).filter(p=>p.body.length>2);
+  if(arr.some(p=>p.label))while(arr.length&&!arr[0].label)arr.shift();
+  return arr;
+}
+function wrap(c,t,mw){const o=[];t.split("\n").forEach(p=>{let l="";p.split(" ").forEach(w=>{const x=l?l+" "+w:w;if(c.measureText(x).width>mw&&l){o.push(l);l=w}else l=x});o.push(l)});return o}
+function fit(c,t,mw,mh,fam,big){
+  const font=s=>fam=="S"?`400 ${s}px ${SF}`:`700 ${s}px ${N}`;let r;
+  for(let s=(fam=="S"?80:86)+(big?22:0);s>=22;s-=2){c.font=font(s);const l=wrap(c,t,mw),lh=s*1.45;r={s,l,lh,f:font(s)};if(l.length*lh<=mh)return r}
+  return r;
+}
+const hex=(h,a)=>{h=h.replace("#","");if(h.length==3)h=[...h].map(x=>x+x).join("");return`rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`};
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function mesh(c,P){
+  const g=c.createLinearGradient(0,0,W*.6,H);g.addColorStop(0,P[0]);g.addColorStop(1,P[1]);c.fillStyle=g;c.fillRect(0,0,W,H);
+  [[W*.92,H*.06,W*.75,.32],[W*.04,H*.96,W*.65,.22]].forEach(([x,y,r,a])=>{const q=c.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,hex(P[3],a));q.addColorStop(1,hex(P[3],0));c.fillStyle=q;c.fillRect(0,0,W,H)});
+}
+function dots(c,col,a){c.fillStyle=hex(col,a);for(let x=40;x<W;x+=56)for(let y=40;y<H;y+=56){c.beginPath();c.arc(x,y,2.2,0,7);c.fill()}}
+const ICON=[["फैक्ट","🧠"],["कोट","💬"],["टिप","💡"],["डेट","💘"],["ब्रेकअप","💔"],["हीलिंग","🌱"],["रिलेशन","❤️"],["Fact","🧠"],["Healing","🌱"],["Quote","💬"],["Dating","💘"],["Relationship","❤️"],["Breakup","💔"],["Tip","💡"]];
+function tag(c,t,x,y,ac,al){
+  const ic=(ICON.find(k=>t.includes(k[0]))||[0,"✨"])[1],s=ic+"  "+t;c.font=`700 32px ${N}`;
+  const w=c.measureText(s).width+64,x0=al=="center"?x-w/2:x;
+  c.fillStyle=hex(ac,.16);rr(c,x0,y-33,w,66,33);c.fill();c.strokeStyle=ac;c.lineWidth=2.5;c.stroke();
+  c.fillStyle=ac;c.textAlign="center";c.textBaseline="middle";c.fillText(s,x0+w/2,y+3);
+}
+let RD={},RI=null,recBusy=0;
+function lay(c,p,P,wm,o){
+  o=Object.assign({},LVc,o||{});
+  const al=o.al||"center",x0=al=="center"?W/2:120,mw=al=="center"?W-240:W-250,col=o.col||P[2],ac=o.ac||P[3],top=250,bot=H-260,HL=H;
+  const dr=(kd,fn)=>{if(RI)RI.push({k:kd,fn});else fn(c)};
+  {const lt=o.col&&o.col.length==7&&o.col!="#ffffff",py=o.nt?245:205;
+   dr("p",k=>{k.fillStyle=(o.panel&&o.panel!==1)?o.panel:(lt?"rgba(255,255,255,.55)":"rgba(0,0,0,.24)");rr(k,64,py,W-128,HL-150-py,44);k.fill();
+   k.strokeStyle=hex(ac,.55);k.lineWidth=3;rr(k,64,py,W-128,HL-150-py,44);k.stroke()})}
+  if(p.label&&!o.nt){dr("t",k=>{o.lb?tag2(k,p.label,x0,165,ac,al,o.lb,o.tc):tag(k,p.label,x0,165,ac,al)})}
+  const f=fit(c,p.body,mw,bot-top,o.fam,o.big);
+  const sp=Math.max(0,bot-top-f.l.length*f.lh),vp=o.vp==null?.5:o.vp,y0=top+sp*vp+f.lh/2;
+  f.l.forEach((l,j)=>{const yy=y0+j*f.lh,fc=(o.hl&&j==0&&f.l.length>1)?ac:col;
+    dr("l",k=>{k.font=f.f;k.textAlign=al;k.textBaseline="middle";if(o.glow){k.shadowColor=ac;k.shadowBlur=30}k.fillStyle=fc;k.fillText(l,x0,yy);k.shadowBlur=0})});
+  dr("b",k=>{k.fillStyle=ac;rr(k,al=="center"?W/2-45:x0,bot+22,90,7,3.5);k.fill()});
+  if(p.au)dr("a",k=>{k.font=`500 34px ${N}`;k.textAlign=al;k.textBaseline="middle";k.fillStyle=ac;k.fillText(p.au,x0,bot+75)});
+}
+const T=[
+ (c,p,P,wm)=>{mesh(c,P);dots(c,P[2],.07);lay(c,p,P,wm)},
+ (c,p,P,wm)=>{mesh(c,P);c.strokeStyle=P[3];c.lineWidth=5;c.strokeRect(46,46,W-92,H-92);c.lineWidth=2;c.strokeRect(70,70,W-140,H-140);c.fillStyle=P[3];[[46,46],[W-46,46],[46,H-46],[W-46,H-46]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,12,0,7);c.fill()});lay(c,p,P,wm,{fam:"S"})},
+ (c,p,P,wm)=>{mesh(c,[P[1],P[0],P[2],P[3]]);c.fillStyle=hex(P[3],.3);c.font=`800 460px ${N}`;c.textAlign="left";c.textBaseline="top";c.fillText("“",40,-30);c.fillStyle=P[3];c.fillRect(70,250,8,H-510);lay(c,p,P,wm,{al:"left",fam:"S"})},
+ (c,p,P,wm)=>{c.fillStyle=P[0];c.fillRect(0,0,W,H);c.fillStyle=P[3];c.fillRect(0,0,W,230);c.fillStyle="#111";c.font=`800 58px ${N}`;c.textAlign="center";c.textBaseline="middle";c.fillText(((ICON.find(k=>p.label.includes(k[0]))||[0,"✨"])[1])+"  "+(p.label||"आज की बात"),W/2,118);dots(c,P[3],.1);lay(c,p,P,wm,{nt:1})},
+ (c,p,P,wm)=>{mesh(c,P);c.save();c.shadowColor="rgba(0,0,0,.4)";c.shadowBlur=60;c.shadowOffsetY=24;c.fillStyle="#fffdf9";rr(c,66,90,W-132,H-250,46);c.fill();c.restore();c.fillStyle=P[3];rr(c,66,90,W-132,22,11);c.fill();lay(c,p,P,wm,{col:"#26212e",ac:P[0].length==7?P[0]:"#333",fc:"#fff"})},
+ (c,p,P,wm)=>{mesh(c,P);c.fillStyle=hex(P[3],.14);[[W-80,140,330],[60,H-300,260],[W*.55,H*.55,120]].forEach(([x,y,r])=>{c.beginPath();c.arc(x,y,r,0,7);c.fill()});lay(c,p,P,wm)},
+ (c,p,P,wm)=>{mesh(c,P);c.fillStyle=P[3];c.fillRect(0,0,30,H);c.fillStyle=hex(P[2],.06);c.font=`800 240px ${N}`;c.textAlign="right";c.textBaseline="alphabetic";c.fillText((p.label||"").split(" ")[0],W-40,H-190);lay(c,p,P,wm,{al:"left"})},
+ (c,p,P,wm)=>{c.fillStyle="#0a0a12";c.fillRect(0,0,W,H);const q=c.createRadialGradient(W/2,H/2,0,W/2,H/2,W*.7);q.addColorStop(0,hex(P[3],.18));q.addColorStop(1,hex(P[3],0));c.fillStyle=q;c.fillRect(0,0,W,H);lay(c,p,P,wm,{col:"#fff",glow:1})},
+ (c,p,P,wm)=>{c.fillStyle=P[0];c.fillRect(0,0,W,H);c.fillStyle=P[1];c.beginPath();c.moveTo(W*.35,0);c.lineTo(W,0);c.lineTo(W,H*.45);c.closePath();c.fill();c.fillStyle=hex(P[3],.9);c.beginPath();c.moveTo(0,H*.8);c.lineTo(W*.4,H);c.lineTo(0,H);c.closePath();c.fill();lay(c,p,P,wm,{al:"left"})},
+ (c,p,P,wm,i)=>{const A=TA(i);c.fillStyle="#faf5ec";c.fillRect(0,0,W,H);c.fillStyle=A;c.fillRect(0,0,W,16);c.fillRect(0,H-16,W,16);lay(c,p,P,wm,{col:"#2b2320",ac:A,fam:"S"})}
+];
+/* ===== 66 NEW DESIGNS: engine ===== */
+const RN=s=>()=>(s=(s*16807)%2147483647)/2147483647;
+/* ===== TIME-BASED UNIQUE COLOUR ENGINE =====
+   Every click reads the exact clock (year-week, day-of-year, weekday, hour, minute, second, millisecond)
+   and turns it into a hue, a colour harmony, brightness levels, a design order and a layout offset.
+   Same second twice in a year = practically impossible, so looks almost never repeat. */
+let TS=Date.now(),SR=Math.random,SO=0;
+const h2x=(h,s,l)=>{h=((h%360)+360)%360;s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,"0")};return"#"+f(0)+f(8)+f(4)};
+function tm(){const d=new Date(TS),y0=new Date(d.getFullYear(),0,1),doy=Math.floor((d-y0)/864e5);
+  return{doy,wk:Math.floor((doy+y0.getDay())/7),wd:d.getDay(),hr:d.getHours(),mi:d.getMinutes(),se:d.getSeconds(),ms:d.getMilliseconds(),yr:d.getFullYear()}}
+function tH(i){const t=tm();return(t.yr*3+t.wk*47+t.doy*13+t.wd*61+t.hr*29+t.mi*7+t.se*3.1+t.ms*.017+i*37)%360}
+function TP(i){
+  const t=tm(),h=tH(i),sc=(t.wd*7+t.hr*3+t.mi+t.se+i)%6,off=[30,180,120,150,60,210][sc];
+  const sat=55+((t.se*7+t.mi*3+i*5)%35),L0=7+((t.mi+i)%10),L1=18+((t.se+i*3)%18),LA2=66+((t.ms+i*7)%14);
+  return[h2x(h,sat*.8,L0),h2x(h+off,sat,L1),"#ffffff",h2x(h+off*2+20,92,LA2)];
+}
+const TA=i=>h2x(tH(i)+i*13,70,36);
+const TB=i=>h2x(tH(i)+25,55,94-(tm().se+i)%5);
+function stamp(){
+  TS=Date.now();const t=tm();SO=t.se;
+  SR=RN((TS%2147483646)+1);
+  const D=["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"][t.wd],p=n=>String(n).padStart(2,"0");
+  return"🎨 रंग-कोड: "+D+" · सप्ताह "+(t.wk+1)+" · दिन "+(t.doy+1)+" · "+p(t.hr)+":"+p(t.mi)+":"+p(t.se)+"."+String(t.ms).padStart(3,"0");
+}
+const LA=["#c0392b","#5b4bd6","#0f766e","#b45309","#be185d","#1d4ed8","#7c3aed","#047857"];
+const LB=["#faf5ec","#f3efe6","#ffffff","#fde8ee","#e6f0ff","#e5f6ee","#f6ead6","#ece8fb"];
+const pt=r=>{let x,y,t=0;do{x=r()*W;y=r()*H}while(x>110&&x<W-110&&y>235&&y<H-235&&++t<30);return[x,y]};
+const lum=h=>([1,3,5].map(i=>parseInt(h.slice(i,i+2),16)*[.299,.587,.114][(i-1)/2]).reduce((a,b)=>a+b))/255;
+const dk=(h,f)=>"#"+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*f).toString(16).padStart(2,"0")).join("");
+const fl=(c,col)=>{c.fillStyle=col;c.fillRect(0,0,W,H)};
+const lg=(c,a,b,x0,y0,x1,y1)=>{const g=c.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,a);g.addColorStop(1,b);c.fillStyle=g;c.fillRect(0,0,W,H)};
+const rg=(c,a,b,x,y,r)=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,a);g.addColorStop(1,b);c.fillStyle=g;c.fillRect(0,0,W,H)};
+const circ=(c,x,y,r)=>{c.beginPath();c.arc(x,y,r,0,Math.PI*2)};
+const BG={
+ v:(c,P)=>lg(c,P[0],P[1],0,0,0,H),
+ vr:(c,P)=>lg(c,P[1],P[0],0,0,0,H),
+ d:(c,P)=>lg(c,P[0],P[1],0,0,W,H),
+ dr:(c,P)=>lg(c,P[1],P[0],W,0,0,H),
+ rad:(c,P)=>rg(c,P[1],P[0],W/2,H/2,Math.max(W,H)*.75),
+ radt:(c,P)=>rg(c,P[1],P[0],W/2,0,H*.95),
+ s0:(c,P)=>fl(c,P[0]),
+ ink:c=>fl(c,"#0b0b10"),
+ night:(c,P)=>lg(c,"#0b0b10",P[0],0,0,0,H),
+ band:(c,P)=>{fl(c,P[0]);c.fillStyle=hex(P[3],.13);c.fillRect(0,H*.3,W,H*.4)},
+ acg:(c,P,A)=>lg(c,A,P[0],0,0,W,H),
+ ac:(c,P,A)=>fl(c,A),
+ lt:(c,P,A,B)=>fl(c,B),
+ ltg:(c,P,A,B)=>lg(c,B,"#ffffff",0,0,0,H)
+};
+const DC={
+ grid:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=1.5;for(let x=0;x<=W;x+=72){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke()}for(let y=0;y<=H;y+=72){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}},
+ lines:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=2;for(let y=250;y<H-200;y+=76){c.beginPath();c.moveTo(60,y);c.lineTo(W-60,y);c.stroke()}},
+ stripe:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=14;for(let x=-H;x<W+H;x+=64){c.beginPath();c.moveTo(x,0);c.lineTo(x+H,H);c.stroke()}},
+ dot:(c,k,a)=>{c.fillStyle=hex(k,a);for(let x=40;x<W;x+=56)for(let y=40;y<H;y+=56){circ(c,x,y,2.4);c.fill()}},
+ polka:(c,k,a)=>{c.fillStyle=hex(k,a);let o=0;for(let y=60;y<H+80;y+=120){o=1-o;for(let x=60+o*60;x<W+60;x+=120){circ(c,x,y,22);c.fill()}}},
+ cross:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let x=60;x<W;x+=110)for(let y=60;y<H;y+=110){c.beginPath();c.moveTo(x-10,y);c.lineTo(x+10,y);c.moveTo(x,y-10);c.lineTo(x,y+10);c.stroke()}},
+ diam:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=2;for(let x=0;x<W+90;x+=90)for(let y=0;y<H+90;y+=90){c.beginPath();c.moveTo(x,y-45);c.lineTo(x+45,y);c.lineTo(x,y+45);c.lineTo(x-45,y);c.closePath();c.stroke()}},
+ check:(c,k,a)=>{c.fillStyle=hex(k,a);const s=90;for(let x=0;x<W;x+=s)for(let y=0;y<H;y+=s)if(((x+y)/s)%2==0)c.fillRect(x,y,s,s)},
+ hexg:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=2.5;const s=64,h=s*1.732;for(let col=-1;col<W/(s*1.5)+1;col++)for(let row=-1;row<H/h+1;row++){const x=col*s*1.5,y=row*h+(col&1?h/2:0);c.beginPath();for(let j=0;j<6;j++){const q=j*Math.PI/3;c.lineTo(x+Math.cos(q)*s,y+Math.sin(q)*s)}c.closePath();c.stroke()}},
+ ring:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let i=1;i<=9;i++){circ(c,W*.95,H*.05,i*95);c.stroke()}},
+ ring2:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let i=1;i<=8;i++){circ(c,W*.05,H*.95,i*95);c.stroke()}},
+ ringc:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;for(let i=1;i<=10;i++){circ(c,W/2,H/2,i*100);c.stroke()}},
+ wave:(c,k,a)=>{for(let j=0;j<4;j++){c.fillStyle=hex(k,a*(1-j*.18));c.beginPath();c.moveTo(0,H);for(let x=0;x<=W;x+=12)c.lineTo(x,H-70-j*46+Math.sin(x/130+j*1.3)*34);c.lineTo(W,H);c.closePath();c.fill()}},
+ wavet:(c,k,a)=>{for(let j=0;j<3;j++){c.fillStyle=hex(k,a*(1-j*.22));c.beginPath();c.moveTo(0,0);for(let x=0;x<=W;x+=12)c.lineTo(x,70+j*46+Math.sin(x/120+j*1.1)*32);c.lineTo(W,0);c.closePath();c.fill()}},
+ zig:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=6;c.lineJoin="miter";[38,H-38].forEach(y=>{c.beginPath();for(let x=0;x<=W;x+=30)c.lineTo(x,y+((x/30)%2?14:-14));c.stroke()})},
+ tri:(c,k,a,r)=>{c.fillStyle=hex(k,a);for(let i=0;i<26;i++){const [x,y]=pt(r),s=40+r()*90;c.save();c.translate(x,y);c.rotate(r()*6.28);c.beginPath();c.moveTo(0,-s/2);c.lineTo(s/2,s/2);c.lineTo(-s/2,s/2);c.closePath();c.fill();c.restore()}},
+ star:(c,k,a,r)=>{c.fillStyle=hex(k,a);for(let i=0;i<34;i++){const [x,y]=pt(r),s=8+r()*26;c.beginPath();for(let j=0;j<8;j++){const q=j*Math.PI/4,d=j%2?s*.28:s;c.lineTo(x+Math.cos(q)*d,y+Math.sin(q)*d)}c.closePath();c.fill()}},
+ spark:(c,k,a,r)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;c.lineCap="round";for(let i=0;i<30;i++){const [x,y]=pt(r),s=6+r()*16;c.beginPath();c.moveTo(x-s,y);c.lineTo(x+s,y);c.moveTo(x,y-s);c.lineTo(x,y+s);c.stroke()}c.lineCap="butt"},
+ heart:(c,k,a,r)=>{c.fillStyle=hex(k,a);for(let i=0;i<22;i++){const [x,y]=pt(r),s=18+r()*46;c.save();c.translate(x,y);c.rotate((r()-.5)*.8);c.beginPath();c.moveTo(0,s*.3);c.bezierCurveTo(-s,-s*.3,-s*.4,-s,0,-s*.4);c.bezierCurveTo(s*.4,-s,s,-s*.3,0,s*.3);c.fill();c.restore()}},
+ bokeh:(c,k,a,r)=>{for(let i=0;i<18;i++){const x=r()*W,y=r()*H,s=40+r()*130,g=c.createRadialGradient(x,y,0,x,y,s);g.addColorStop(0,hex(k,a));g.addColorStop(1,hex(k,0));c.fillStyle=g;circ(c,x,y,s);c.fill()}},
+ noise:(c,k,a,r)=>{c.fillStyle=hex(k,a);for(let i=0;i<900;i++)c.fillRect(r()*W,r()*H,2+r()*3,2+r()*3)},
+ rays:(c,k,a)=>{c.fillStyle=hex(k,a);const cx=W/2,cy=H*.46,n=24;for(let i=0;i<n;i+=2){const q0=i/n*6.283,q1=(i+1)/n*6.283;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(q0)*2400,cy+Math.sin(q0)*2400);c.lineTo(cx+Math.cos(q1)*2400,cy+Math.sin(q1)*2400);c.closePath();c.fill()}},
+ corner:(c,k,a)=>{c.fillStyle=hex(k,a);[[0,0],[W,0],[0,H],[W,H]].forEach(([x,y])=>{circ(c,x,y,230);c.fill()})},
+ blob:(c,k,a)=>{c.fillStyle=hex(k,a);[[W*.9,H*.12,300],[W*.08,H*.62,220],[W*.7,H*.95,260]].forEach(([x,y,s])=>{circ(c,x,y,s);c.fill()})},
+ arc:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=36;circ(c,-120,H*.5,H*.42);c.stroke();circ(c,W+120,H*.5,H*.36);c.stroke()},
+ bars:(c,k,a)=>{c.fillStyle=hex(k,a);const n=24,w=W/n;for(let i=0;i<n;i++){const h=60+Math.abs(Math.sin(i*1.7)*Math.cos(i*.6))*260;c.fillRect(i*w+6,H-h,w-12,h)}},
+ moon:(c,k,a)=>{const x=W*.86,y=H*.1,R=100;c.save();c.beginPath();c.arc(x,y,R,0,6.283);c.clip();c.beginPath();c.rect(x-R-5,y-R-5,2*R+10,2*R+10);c.arc(x+R*.45,y-R*.2,R*.85,0,6.283);c.fillStyle=hex(k,a);c.fill("evenodd");c.restore()},
+ halo:(c,k,a)=>{c.fillStyle=hex(k,a);circ(c,W/2,H/2,Math.min(W,H)*.46);c.fill()},
+ frame:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=4;c.strokeRect(50,50,W-100,H-100)},
+ frame2:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=3;c.strokeRect(40,40,W-80,H-80);c.lineWidth=10;c.strokeRect(62,62,W-124,H-124)},
+ frameR:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=4;rr(c,48,48,W-96,H-96,70);c.stroke()},
+ dbl:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=2;c.strokeRect(36,36,W-72,H-72);c.strokeRect(56,56,W-112,H-112)},
+ dash:(c,k,a)=>{c.save();c.setLineDash([24,18]);c.strokeStyle=hex(k,a);c.lineWidth=4;rr(c,52,52,W-104,H-104,40);c.stroke();c.restore()},
+ brk:(c,k,a)=>{c.strokeStyle=hex(k,a);c.lineWidth=8;c.lineCap="round";const m=64,l=120;[[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([x,y,sx,sy])=>{c.beginPath();c.moveTo(x+sx*l,y);c.lineTo(x,y);c.lineTo(x,y+sy*l);c.stroke()});c.lineCap="butt"},
+ band:(c,k,a)=>{c.fillStyle=hex(k,a);c.fillRect(0,H*.34,W,H*.3)},
+ topbar:(c,k,a)=>{c.fillStyle=hex(k,a);c.fillRect(0,0,W,22);c.fillRect(0,H-22,W,22)},
+ side:(c,k,a)=>{c.fillStyle=hex(k,a);c.fillRect(0,0,26,H);c.fillRect(W-26,0,26,H)},
+ half:(c,k,a)=>{c.fillStyle=hex(k,a);c.fillRect(W/2,0,W/2,H)},
+ qm:(c,k,a)=>{c.fillStyle=hex(k,a);c.font=`800 560px ${N}`;c.textAlign="left";c.textBaseline="top";c.fillText("“",40,-30)},
+ diag:(c,k,a)=>{c.fillStyle=hex(k,a);c.beginPath();c.moveTo(0,0);c.lineTo(330,0);c.lineTo(0,150);c.closePath();c.fill();c.beginPath();c.moveTo(W,H);c.lineTo(W-330,H);c.lineTo(W,H-150);c.closePath();c.fill()},
+ tri2:(c,k,a)=>{c.fillStyle=hex(k,a);c.beginPath();c.moveTo(0,H);c.lineTo(0,H-260);c.lineTo(260,H);c.closePath();c.fill();c.beginPath();c.moveTo(W,0);c.lineTo(W,260);c.lineTo(W-260,0);c.closePath();c.fill()}
+};
+function tag2(c,t,x,y,ac,al,m,tc){
+  if(m=="plain"){c.font=`700 34px ${N}`;c.textAlign=al;c.textBaseline="middle";c.fillStyle=ac;c.fillText("— "+t.toUpperCase()+" —",x,y);return}
+  const ic=(ICON.find(k=>t.includes(k[0]))||[0,"✨"])[1],s=ic+"  "+t;c.font=`700 32px ${N}`;
+  const w=c.measureText(s).width+64,x0=al=="center"?x-w/2:x;c.textAlign="center";c.textBaseline="middle";
+  if(m=="solid"){c.fillStyle=ac;rr(c,x0,y-33,w,66,14);c.fill();c.fillStyle=tc||"#111";c.fillText(s,x0+w/2,y+3)}
+  else{c.fillStyle=ac;c.fillText(s,x0+w/2,y+3);c.fillRect(x0+w*.2,y+38,w*.6,4)}
+}
+const CK=(k,L,A,P)=>k=="a"?(L?A:P[3]):k=="f"?(L?"#26212e":P[2]):k=="w"?"#ffffff":k=="k"?"#000000":k=="p0"?P[0]:k;
+/* spec: [background, [[decoration, colour, alpha], ...], layout options, isLight] */
+const MK=(bg,dc,o,L)=>(c,p,P0,wm,i)=>{
+  const r=RN(i*977+bg.length*31+dc.length*7+13),A=TA(i),B=TB(i),P=[lum(P0[0])>.3?dk(P0[0],.6):P0[0],dk(P0[1],.72),P0[2],P0[3]];
+  BG[bg](c,P,A,B);
+  dc.forEach(([n,k,a])=>DC[n](c,CK(k,L,A,P),a,r));
+  const o2=Object.assign({tc:L?"#fff":"#111"},L?{col:"#26212e",ac:A,fc:"#26212e"}:{},o);
+  if(o2.panel)o2.panel=hex(L?"#ffffff":"#000000",L?.7:.26);
+  lay(c,p,P,wm,o2);
+};
+
+/* designs 11-43: dark and colour-block styles */
+const NEW1=[
+ ["v",[["wave","a",.14]],{}],
+ ["d",[["ring","f",.07],["ring2","a",.09]],{lb:"solid"}],
+ ["rad",[["star","a",.4]],{lb:"plain"}],
+ ["night",[["bokeh","a",.22]],{glow:1}],
+ ["ink",[["dot","a",.18],["frame","a",.6]],{fam:"S",lb:"line"}],
+ ["s0",[["hexg","f",.07]],{}],
+ ["v",[["heart","a",.13]],{lb:"solid"}],
+ ["radt",[["rays","f",.05]],{lb:"plain"}],
+ ["dr",[["tri","a",.1]],{al:"left"}],
+ ["s0",[["stripe","f",.04],["topbar","a",1]],{lb:"line"}],
+ ["night",[["moon","a",.9],["star","f",.4]],{fam:"S"}],
+ ["d",[["blob","a",.14]],{al:"left",lb:"solid"}],
+ ["rad",[["spark","f",.35],["frameR","a",.5]],{}],
+ ["ink",[["grid","a",.1]],{glow:1,lb:"plain"}],
+ ["v",[["brk","a",.85]],{fam:"S"}],
+ ["s0",[["polka","f",.05]],{fam:"S",lb:"line"}],
+ ["acg",[["dot","f",.12]],{lb:"solid"}],
+ ["ac",[["ring","f",.12],["ring2","f",.1]],{lb:"plain"}],
+ ["night",[["bars","a",.14]],{al:"left"}],
+ ["dr",[["wavet","a",.16],["wave","f",.07]],{lb:"solid"}],
+ ["s0",[["diam","a",.12]],{fam:"S"}],
+ ["rad",[["corner","a",.12]],{fam:"S",lb:"line"}],
+ ["ink",[["zig","a",.7]],{lb:"plain"}],
+ ["v",[["cross","f",.15]],{al:"left",lb:"solid"}],
+ ["d",[["arc","a",.2]],{}],
+ ["band",[["dash","a",.5]],{lb:"line"}],
+ ["radt",[["noise","f",.1],["frame2","a",.6]],{fam:"S"}],
+ ["night",[["halo","a",.1],["spark","a",.5]],{glow:1,lb:"solid"}],
+ ["s0",[["diag","a",.95]],{al:"left",lb:"plain"}],
+ ["ac",[["check","f",.05],["side","f",.9]],{lb:"line"}],
+ ["v",[["qm","a",.28]],{fam:"S"}],
+ ["dr",[["lines","f",.08]],{fam:"S",lb:"solid"}],
+ ["ink",[["halo","a",.09],["dbl","a",.5]],{panel:1,lb:"plain"}]
+].map(s=>MK(s[0],s[1],s[2],false));
+
+/* designs 44-76: light paper styles */
+const NEW2=[
+ ["lt",[["frame","a",.9]],{fam:"S",lb:"line"}],
+ ["lt",[["dot","a",.25],["topbar","a",1]],{lb:"solid"}],
+ ["ltg",[["wave","a",.2]],{lb:"plain"}],
+ ["lt",[["blob","a",.15]],{al:"left"}],
+ ["lt",[["lines","a",.2]],{fam:"S",lb:"line"}],
+ ["lt",[["grid","a",.1],["brk","a",1]],{lb:"solid"}],
+ ["lt",[["stripe","a",.06],["side","a",1]],{al:"left",lb:"plain"}],
+ ["lt",[["heart","a",.14]],{lb:"line"}],
+ ["lt",[["polka","a",.1],["frameR","a",.8]],{lb:"solid"}],
+ ["lt",[["corner","a",.2]],{fam:"S"}],
+ ["lt",[["check","a",.05],["dbl","a",.8]],{fam:"S",lb:"plain"}],
+ ["lt",[["star","a",.3]],{lb:"solid"}],
+ ["ltg",[["ring","a",.15],["ring2","a",.12]],{al:"left",lb:"line"}],
+ ["lt",[["arc","a",.25]],{lb:"plain"}],
+ ["lt",[["zig","a",.9]],{fam:"S",lb:"solid"}],
+ ["lt",[["cross","a",.3]],{lb:"line"}],
+ ["lt",[["diam","a",.2]],{al:"left",fam:"S"}],
+ ["lt",[["tri","a",.12]],{fam:"S",lb:"plain"}],
+ ["lt",[["hexg","a",.2]],{lb:"solid"}],
+ ["lt",[["wavet","a",.2],["wave","a",.16]],{lb:"line"}],
+ ["lt",[["qm","a",.2]],{fam:"S",al:"left"}],
+ ["lt",[["halo","a",.1],["spark","a",.6]],{lb:"solid"}],
+ ["lt",[["bars","a",.15]],{lb:"plain"}],
+ ["lt",[["noise","a",.25],["frame2","a",.8]],{fam:"S",lb:"line"}],
+ ["lt",[["band","a",.1],["dash","a",.7]],{lb:"solid"}],
+ ["lt",[["moon","a",.5],["star","a",.3]],{fam:"S",lb:"plain"}],
+ ["lt",[["bokeh","a",.2]],{al:"left",lb:"line"}],
+ ["lt",[["rays","a",.06]],{lb:"solid"}],
+ ["lt",[["diag","a",.95]],{al:"left",lb:"plain"}],
+ ["lt",[["topbar","a",1],["polka","a",.08]],{panel:1,lb:"solid"}],
+ ["lt",[["spark","a",.5],["frame","a",.8]],{fam:"S",lb:"line"}],
+ ["lt",[["ringc","a",.1]],{fam:"S",lb:"plain"}],
+ ["lt",[["tri2","a",.95]],{lb:"solid"}]
+].map(s=>MK(s[0],s[1],s[2],true));
+
+T.push(...NEW1,...NEW2);
+async function lf(){try{await document.fonts.load('700 40px "Noto Sans Devanagari"',"अआक");await document.fonts.load('400 40px "Tiro Devanagari Hindi"',"अआक");await document.fonts.load("700 40px Poppins","Ab");await document.fonts.load('400 40px "Playfair Display"',"Ab");await document.fonts.ready}catch(e){}}
+async function allD(){
+  const st=$("st"),en=$("lg").value=="en";
+  H=+$("sz").value;N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
+  st.textContent="…";LVc={};await lf();const stp=stamp();
+  const sp=en?{label:"Healing Quote",au:"\u2014 Anonymous",body:"Healing begins the moment you stop explaining yourself to people who chose not to understand."}:{label:"हीलिंग कोट",au:"\u2014 अज्ञात",body:"जो चला गया उसे जाने दो, जो रुका है उसकी क़द्र करो।"};
+  const g=$("g");g.innerHTML="";canv=[];
+  T.forEach((f,i)=>{const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");f(c,TC(sp),TP(i),"",i);canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);const b=document.createElement("button");b.className="g";b.textContent="⬇ डिज़ाइन "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);g.appendChild(d)});
+  st.textContent=T.length+" डिज़ाइन का नमूना (हर कार्ड के नीचे डिज़ाइन नंबर)। ये इतिहास में नहीं जुड़े। "+stp;
+  $("zb").style.display="block";
+}
+
+/* ===== REEL ENGINE ===== */
+const RDUR=15;
+function reelScore(p){
+  const t=(p.label||"").toLowerCase(),n=p.body.split(/\s+/).length,ln=p.body.split("\n").length;
+  let sc=/fact|फैक्ट/.test(t)?3:/heal|हीलिंग/.test(t)?2.5:/relationship|रिलेशन|dating|डेट|tip|टिप/.test(t)?2:/quote|कोट/.test(t)?1.2:1.5;
+  sc+=n<8?0:n<=22?3:n<=30?1.5:0;
+  if(ln>=2&&ln<=3)sc+=1;
+  if(/\?|कभी|never|why|क्यों|stop|don.t|मत |नहीं|आख़िर|आखिर/i.test(p.body))sc+=1;
+  return sc+SR()*.6;
+}
+function pickReels(acc,K){
+  const sc=acc.map((p,i)=>({i,s:reelScore(p),t:(p.label||"?").toLowerCase()})).sort((a,b)=>b.s-a.s);
+  const out=[],cnt={};
+  const tryAdd=(strict)=>{for(const x of sc){if(out.length>=K)break;if(out.some(o=>o.i==x.i))continue;
+    if(strict&&(out.reduce((m,o)=>Math.min(m,Math.abs(o.i-x.i)),99)<2||(cnt[x.t]||0)>=3))continue;
+    out.push(x);cnt[x.t]=(cnt[x.t]||0)+1}};
+  tryAdd(true);tryAdd(false);
+  const m=new Map();out.forEach(o=>m.set(o.i,o.s));return m;
+}
+function mkPt(i,w,h){const r=RN(i*977+13);return Array.from({length:22},()=>({x:r()*w,y:r()*h,s:10+r()*26,v:40+r()*90,ph:r()*6.28}))}
+function pHeart(k,x,y,s){k.beginPath();k.moveTo(x,y+s*.3);k.bezierCurveTo(x-s,y-s*.3,x-s*.4,y-s,x,y-s*.4);k.bezierCurveTo(x+s*.4,y-s,x+s,y-s*.3,x,y+s*.3);k.fill()}
+function pStar(k,x,y,s){k.beginPath();for(let j=0;j<8;j++){const q=j*Math.PI/4,d=j%2?s*.28:s;k.lineTo(x+Math.cos(q)*d,y+Math.sin(q)*d)}k.closePath();k.fill()}
+const eo=x=>1-Math.pow(1-Math.max(0,Math.min(1,x)),3);
+function drawFrame(d,t){
+  const k=d.cv.getContext("2d"),w=d.cv.width,h=d.cv.height,u=t/RDUR;
+  k.setTransform(1,0,0,1,0,0);k.globalAlpha=1;k.shadowBlur=0;k.clearRect(0,0,w,h);
+  let s=1.08,ox=0,oy=0,rot=0;
+  if(d.m==0)s=1.06+.06*u;else if(d.m==1){ox=Math.sin(u*6.28)*18;oy=-u*45}else if(d.m==2){ox=-u*30;oy=-u*40}
+  else if(d.m==3)s=1.07+.03*Math.sin(u*18.85);else rot=Math.sin(u*6.28)*.015;
+  k.save();k.translate(w/2+ox,h/2+oy);k.rotate(rot);k.scale(s,s);k.drawImage(d.bg,-w/2,-h/2);k.restore();
+  k.fillStyle=hex(d.P[3],.32);
+  d.pt.forEach(q=>{const y=((q.y-q.v*t)%(h+80)+h+80)%(h+80)-40,x=q.x+Math.sin(t*.8+q.ph)*30;
+    if(d.ps==0)pHeart(k,x,y,q.s);else if(d.ps==1)pStar(k,x,y,q.s*.8);else{k.beginPath();k.arc(x,y,q.s*.7,0,7);k.fill()}});
+  const nl=d.items.filter(x=>x.k=="l").length,step=Math.min(1.2,6/Math.max(1,nl));let li=0;const be=1.2+nl*step;
+  d.items.forEach((it,ix)=>{
+    let st=0,du=.7;
+    if(it.k=="t"){st=.5;du=.6}else if(it.k=="l"){st=1+li*step;du=.8;li++}else if(it.k=="b"){st=be;du=.5}else if(it.k=="a"){st=be+.3;du=.6}
+    const e=eo((t-st)/du);if(e<=0)return;
+    const fl=it.k=="p"?0:(t>st+du?Math.sin(t*1.5+ix)*2.5:0);
+    k.save();k.globalAlpha=e;k.translate(0,it.k=="p"?0:(1-e)*40+fl);it.fn(k);k.restore();
+  });
+}
+async function play(i,btn,save){
+  const d=RD[i];if(!d||recBusy)return;recBusy=1;const st=$("st"),old=btn.textContent;let wl=null,mr=null,mt="",ch=[];
+  try{wl=await navigator.wakeLock.request("screen")}catch(e){}
+  if(save){
+    mt=window.MediaRecorder?["video/mp4;codecs=avc1.42E01E","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(m=>MediaRecorder.isTypeSupported(m)):"";
+    if(!mt){st.textContent="इस ब्राउज़र में वीडियो रिकॉर्डिंग नहीं चलती।";recBusy=0;return}
+    mr=new MediaRecorder(d.cv.captureStream(30),{mimeType:mt,videoBitsPerSecond:6e6});
+    mr.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};mr.start(250);
+  }
+  const t0=performance.now();
+  await new Promise(res=>{const tk=()=>{const t=Math.min(RDUR,(performance.now()-t0)/1000);drawFrame(d,t);btn.textContent=(save?"⏺ रिकॉर्ड ":"▶ ")+Math.ceil(RDUR-t)+" सेक";t>=RDUR?res():requestAnimationFrame(tk)};tk()});
+  if(mr){await new Promise(r=>setTimeout(r,300));await new Promise(r=>{mr.onstop=r;mr.stop()});
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(ch,{type:mt.split(";")[0]}));
+    a.download="reel-"+String(i+1).padStart(2,"0")+(mt.includes("mp4")?".mp4":".webm");a.click();st.textContent="✓ रील "+(i+1)+" सेव हो गई।"}
+  drawFrame(d,7);btn.textContent=old;if(wl)try{wl.release()}catch(e){}recBusy=0;
+}
+async function recAll(){
+  const ks=Object.keys(RD),st=$("st");let n=0;
+  for(const k of ks){if(recBusy)return;st.textContent="रील "+(++n)+"/"+ks.length+" बन रही है… स्क्रीन चालू रखें, टैब बदलें नहीं।";await play(+k,$("rbtn"+k),1)}
+  st.textContent="✓ सारी "+ks.length+" रील्स सेव हो गईं। (ब्राउज़र एक साथ कई डाउनलोड पूछे तो Allow करें)";
+}
+const LV=[{},{vp:.12},{vp:.88,hl:1},{hl:1},{vp:.2,hl:1},{vp:.8},{big:1},{vp:.5,hl:1,big:1}];
+function pickD(n,dm){
+  let pool=[...T.keys()];if(dm=="old")pool=pool.slice(0,10);else if(dm=="new")pool=pool.slice(10);
+  const isL=i=>i==9||i>=43,mk=()=>[shuf(pool.filter(i=>!isL(i))),shuf(pool.filter(isL))];
+  let [D,Lt]=mk(),out=[],wl=Math.random()<.5;
+  while(out.length<n){
+    if(!D.length&&!Lt.length){[D,Lt]=mk()}
+    let s=wl?Lt:D;if(!s.length)s=wl?D:Lt;
+    out.push(s.pop());wl=!wl;
+  }
+  return out;
+}
+async function go(){
+  const txt=$("in").value,st=$("st"),TG=TGT(),raw=parse(txt);
+  if(!raw.length){st.textContent="पहले पोस्ट पेस्ट करें।";$("g").innerHTML="";canv=[];RD={};$("zb").style.display="none";$("rb").style.display="none";return}
+  H=+$("sz").value;const en=$("lg").value=="en";N=en?'Poppins,sans-serif':'"Noto Sans Devanagari",sans-serif';SF=en?'"Playfair Display",serif':'"Tiro Devanagari Hindi","Noto Sans Devanagari",serif';
+  const wm="",chk=$("dc").checked;
+  await lf();
+  const stp=stamp();
+  let acc,skip=0,extra=0;
+  if(txt===last&&lastAcc){acc=lastAcc;skip=lastSkip;extra=lastExtra}
+  else{
+    if(last&&lastAdded.length&&txt.startsWith(last.trimEnd())){lastAdded.forEach(s=>{const k=mem.i.lastIndexOf(s);if(k>=0)mem.i.splice(k,1)})}
+    acc=[];const add=[];
+    for(const p of raw){
+      if(acc.length>=TG){extra++;continue}
+      if(chk&&dup(p.body,add)){skip++;continue}
+      add.push(snip(p.body));acc.push(p);
+    }
+    if(chk){mem.i.push(...add);save()}
+    lastAdded=chk?add:[];last=txt;lastAcc=acc;lastSkip=skip;lastExtra=extra;
+  }
+  const order=pickD(acc.length,$("dm").value),g=$("g");g.innerHTML="";canv=[];
+  const RS=pickReels(acc,Math.max(0,Math.min(acc.length,+$("rn").value||0)));RD={};
+  acc.forEach((p,i)=>{
+    const isR=RS.has(i),sH=H;if(isR)H=1920;
+    const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");
+    LVc=LV[(i*3+SO)%LV.length];RI=isR?[]:null;
+    try{T[order[i]](c,TC(p),TP(i),wm,i)}catch(e){c.setTransform(1,0,0,1,0,0);c.shadowBlur=0;c.globalAlpha=1;if(isR)RI=[];try{T[0](c,TC(p),TP(i),wm,i)}catch(e2){console.error(e2)}}
+    const items=RI;RI=null;
+    canv.push(cv);const d=document.createElement("div");d.className="c";d.appendChild(cv);
+    if(isR){
+      const bg=document.createElement("canvas");bg.width=W;bg.height=H;bg.getContext("2d").drawImage(cv,0,0);
+      RD[i]={cv,bg,items,P:TP(i),m:i%5,ps:i%3,pt:mkPt(i,W,H)};drawFrame(RD[i],7);
+      const bd=document.createElement("div");bd.className="s";bd.style.margin="8px 0 0";bd.textContent="🎬 रील चुनी गई · स्कोर "+RS.get(i).toFixed(1);d.appendChild(bd);
+      const b1=document.createElement("button");b1.id="rbtn"+i;b1.textContent="⏺ रील बनाओ (15 सेक)";b1.onclick=()=>play(i,b1,1);d.appendChild(b1);
+      const b2=document.createElement("button");b2.className="g";b2.textContent="▶ प्रीव्यू देखो";b2.onclick=()=>play(i,b2,0);d.appendChild(b2);
+    }else{
+      const b=document.createElement("button");b.className="g";b.textContent="⬇ पोस्ट "+(i+1);b.onclick=()=>dl(cv,i);d.appendChild(b);
+    }
+    H=sH;g.appendChild(d);
+  });
+  LVc={};
+  const long=acc.filter(p=>p.body.split(/\s+/).length>30).length;
+  let m=acc.length+"/"+TG+" पोस्ट तैयार · 🎬 "+Object.keys(RD).length+" रील + 🖼 "+(acc.length-Object.keys(RD).length)+" इमेज";
+  if(skip)m+=" · "+skip+" पुरानी/दोहराई पोस्ट छोड़ीं";
+  if(extra)m+=" · "+extra+" फ़ालतू पोस्ट छोड़ीं (सिर्फ़ पहली "+TG+" ली)";
+  if(long)m+=" · ⚠ "+long+" पोस्ट 30 शब्द से लंबी हैं (टेक्स्ट छोटा दिखेगा)";
+  if(acc.length<TG){const need=TG-acc.length;m+="<br>⚠ "+need+" पोस्ट कम हैं। बाकी पोस्ट इसी बॉक्स में नीचे जोड़ें (पुराना टेक्स्ट न मिटाएँ) <button class=\"g\" style=\"margin-top:6px\" onclick=\"more()\">📋 बाकी "+need+" पोस्ट का प्रॉम्प्ट कॉपी करें</button>"}
+  else m+=" ✓";
+  m+="<br><span style=\"color:var(--mut);font-size:12px\">"+stp+"</span>";
+  st.innerHTML=m;
+  $("zb").style.display=canv.length?"block":"none";$("rb").style.display=Object.keys(RD).length?"block":"none";
+}
+function dl(cv,i){cv.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="post-"+String(i+1).padStart(2,"0")+".png";a.click()})}
+async function zip(){
+  const st=$("st");st.textContent="ZIP बन रही है…";
+  try{const z=new JSZip();for(let i=0;i<canv.length;i++){if(RD[i])continue;z.file("post-"+String(i+1).padStart(2,"0")+".png",await new Promise(r=>canv[i].toBlob(r)))}
+  const o=await z.generateAsync({type:"blob"}),a=document.createElement("a");a.href=URL.createObjectURL(o);a.download="posts.zip";a.click();st.textContent="ZIP तैयार।"}
+  catch(e){st.textContent="ZIP में दिक्कत आई। हर पोस्ट अलग से डाउनलोड करें।"}
+}
+function ex(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([mem.i.join("\n")],{type:"text/plain"}));a.download="post-history.txt";a.click()}
+function im(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{let n=0;r.result.split("\n").map(s=>s.trim()).filter(Boolean).forEach(s=>{if(!dup(s,[])){mem.i.push(s.slice(0,160));n++}});save();$("st").textContent=n+" नई पोस्ट इतिहास में जुड़ीं।";el.value=""};r.readAsText(f)}
+function clr(){if(confirm("पूरा इतिहास मिट जाएगा। पक्का?")){mem={b:0,i:[],tu:[]};save()}}
+function sample(){if($("lg").value=="en"){$("in").value=EN_S;return}$("in").value=`# साइकोलॉजी फैक्ट
+जो लोग आपसे सबसे ज़्यादा प्यार करते हैं, वही आपको सबसे ज़्यादा चोट पहुँचा सकते हैं, क्योंकि आपने उन्हें अपने दिल तक पहुँचने दिया है।
+---
+# रिलेशनशिप टिप
+हर लड़ाई जीतना ज़रूरी नहीं। कभी-कभी रिश्ता जीतना ज़्यादा ज़रूरी होता है।
+---
+# साइकोलॉजी कोट
+हम जिसे नज़रअंदाज़ करते हैं, वही चीज़ हमारे अंदर सबसे ज़्यादा शोर मचाती है।
+— कार्ल युंग
+---
+# डेटिंग टिप
+पहली डेट पर खुद को साबित करने की कोशिश मत करो। बस सामने वाले को ध्यान से सुनो।
+---
+# हीलिंग कोट
+जो चला गया उसे जाने दो, जो रुका है उसकी क़द्र करो।
+---
+# साइकोलॉजी फैक्ट
+इंसान का दिमाग़ अधूरी बातों को ज़्यादा याद रखता है। इसे ज़ाइगार्निक इफ़ेक्ट कहते हैं।
+---
+# रिलेशनशिप टिप
+जिसे आपकी परवाह होगी, वो आपकी चुप्पी का भी मतलब समझ लेगा।
+---
+# डेटिंग टिप
+जो आपके लिए समय निकालता है, उसे मनाने की ज़रूरत नहीं पड़ती।
+---
+# साइकोलॉजी कोट
+जब तक आप अपने अवचेतन को सचेत नहीं करेंगे, वह आपकी ज़िंदगी चलाता रहेगा और आप उसे किस्मत कहेंगे।
+— कार्ल युंग
+---
+# हीलिंग कोट
+खुद से प्यार करना सीख लो, फिर कोई छोड़कर जाए तो भी टूटोगे नहीं।`}
+$("in").addEventListener("paste",()=>setTimeout(go,250));
+["sz","dm"].forEach(id=>$(id).addEventListener("change",()=>{if($("in").value.trim())go()}));
+</script>
+</body>
+</html>
